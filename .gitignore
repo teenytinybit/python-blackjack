@@ -2,3 +2,5 @@
 .vscode/settings.json
 .vscode/.ropeproject/config.py
 .vscode/.ropeproject/objectdb
+blackjack/__pycache__/blackjack_interface.cpython-37.pyc
+blackjack/__pycache__/cards.cpython-37.pyc

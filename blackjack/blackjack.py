@@ -88,16 +88,19 @@ def showOutcomeMessage(outcome):
     print(outcome)
 
 def getAction(*actions):
-    options = [a.value for a in actions]
+    btn_options = [f"'{a.value}'" for a in actions]
     action_msg = ""
     if Actions.SPLIT in actions:
-        options.remove(Actions.SPLIT.value)
+        btn_options.remove(f"'{Actions.SPLIT.value}'")
         action_msg += "\nType 'split' if you'd like to split cards. "
     if Actions.DOUBLE in actions:
-        options.remove(Actions.DOUBLE.value)
+        btn_options.remove(f"'{Actions.DOUBLE.value}'")
         action_msg += "\nType 'double' to double the bet. "
-    action_msg += f"\nType {' or '.join(options)} to proceed." 
+    action_msg += f"\nType {' or '.join(btn_options)} to proceed. "
+
     action = input(action_msg)
+    while action not in [a.value for a in actions]:
+        action = input(action_msg)
     return Actions(action)
 
 def wantsToSplit():
@@ -215,7 +218,7 @@ def runGame():
         print(border)
         playRound()
         # ask to play next game round
-        btn = input("\nType 'start' to play another round.  ")
+        btn = input("\nType 'start' to play another round or 'exit' to leave. ")
         nextGame = (btn == 'start')
         print(border)
 
@@ -229,8 +232,7 @@ def main():
     # start or exit game
     btn = input("")
     while btn not in ['start', 'exit']:
-        print("Please type 'start' to begin or 'exit' to leave.")
-        btn = input("")
+        btn = input("Please type 'start' to begin or 'exit' to leave.")
 
     if btn == 'exit':
         print("Game closed.")
