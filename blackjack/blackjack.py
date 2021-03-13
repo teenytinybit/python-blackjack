@@ -6,13 +6,6 @@ from cards import Card, BlackjackCardSet, SUITS, RANKS
 
 BLACKJACK = 21
 MAX_HANDS = 4
-HIT, STAND, SPLIT, DOUBLE = 1, 2, 3, 4 
-ACTIONS = {
-    HIT:'hit', 
-    STAND:'stand', 
-    SPLIT:'split', 
-    DOUBLE:'double'
-    }
 
 class Actions(Enum):
     HIT = 'hit'
@@ -75,11 +68,14 @@ def isSuccessful(hand: BlackjackCardSet):
         return False
     return True
 
-def playHand(hand: BlackjackCardSet, is_dealer=False):
+def playHand(hand: BlackjackCardSet, is_dealer=False, force_hit=False):
     whose = "Dealer's" if is_dealer else "Your"
-    # player Hits or Stands
+    if force_hit:
+        print(f"==============\n{whose} cards:\n")
+        doHit(hand)
+    
+    action = Actions.HIT
     while canPlay(hand, is_dealer):
-        action = Actions.HIT
         if not is_dealer:
             action = getAction(Actions.HIT, Actions.STAND)
         if action == Actions.HIT:
@@ -92,12 +88,17 @@ def showOutcomeMessage(outcome):
     print(outcome)
 
 def getAction(*actions):
-    action_msg = "\n"
-    if 'split' in actions:
-        action_msg = "Type 'split' if you'd like to split cards. "
-    action_msg += f"Type {' or '.join(actions)} to proceed." 
+    options = [a.value for a in actions]
+    action_msg = ""
+    if Actions.SPLIT in actions:
+        options.remove(Actions.SPLIT.value)
+        action_msg += "\nType 'split' if you'd like to split cards. "
+    if Actions.DOUBLE in actions:
+        options.remove(Actions.DOUBLE.value)
+        action_msg += "\nType 'double' to double the bet. "
+    action_msg += f"\nType {' or '.join(options)} to proceed." 
     action = input(action_msg)
-    return action
+    return Actions(action)
 
 def wantsToSplit():
     split = input("Type 'split' to split your cards.  ") == 'split'
@@ -121,15 +122,15 @@ def playRound():
     dealer_hand.hideCard(hidden_idx)
 
 
-    """
-    TEST CODE =========================
-    """
+    # """
+    # TEST CODE =========================
+    # """
     # player_hand = [BlackjackCardSet()]
     # player_hand[0].addCard(Card('hearts', 'ace'))
-    # player_hand[0].addCard(Card('hearts', 'ace'))
-    """
-    TEST CODE =========================
-    """
+    # player_hand[0].addCard(Card('spades', 'ace'))
+    # """
+    # TEST CODE =========================
+    # """
 
 
     print("Your cards:\n")
@@ -163,34 +164,16 @@ def playRound():
     # player Hits or Stands 
     valid_hands = []
     for i in range(MAX_HANDS):
+        if len(player_hand[i].getCards()) < 2:
+            doHit(player_hand[i])
         if i < MAX_HANDS - 1 and player_hand[i].canSplit():
             action = getAction(Actions.HIT, Actions.STAND, Actions.SPLIT)
+            if action == Actions.STAND:
+                break
             if action == Actions.SPLIT:
                 player_hand.append(player_hand[i].doSplit())
-                doHit(player_hand[i])
-                playHand(player_hand[i])                  
-                valid_hands.append(isSuccessful(player_hand[i]))
-                doHit(player_hand[i+1])
-
-                #TODO: ask for action, then decide what to do
-                #TODO: rewrite playHand()? Break it down? Replace?
-                """
-                TEST CODE =========================
-                """
-                # player_hand[i+1] = BlackjackCardSet(split=True)
-                # player_hand[i+1].addCard(Card('hearts', 'ace'))
-                # player_hand[i+1].addCard(Card('spades', 'ace'))
-                # updateCardView(player_hand[i+1])
-                """
-                TEST CODE =========================
-                """
-            elif action == Actions.HIT:
-                doHit(player_hand[i])
-                playHand(player_hand[i])
-            else:
-                playHand(player_hand[i])
-                valid_hands.append(isSuccessful(player_hand[i]))
-                break
+            playHand(player_hand[i], force_hit=True)
+            valid_hands.append(isSuccessful(player_hand[i]))
         else:
             playHand(player_hand[i])
             valid_hands.append(isSuccessful(player_hand[i]))
