@@ -217,8 +217,7 @@ def runGame():
         nextGame = (btn == 'start')
         print(border)
 
-def main():
-    # interface = TextInterface()
+def runGame(interface):
     # welcome message
     print("Welcome to the game of Blackjack!\
         \nType 'start' to begin.\
@@ -238,4 +237,10 @@ def main():
     
     print("Game ended. Thank you for playing!\n")
 
-main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-interface', default='TextInterface', choices=['TextInterface', 'GraphicInterface'])
+    args = parser.parse_args()
+    interface_class = getattr(blackjack_interface, args.interface)
+    interface = interface_class()
+    runGame(interface)
