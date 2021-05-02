@@ -15,33 +15,6 @@ def drawCard():
     rank = RANKS[randint(0, 12)][0]
     return Card(suit, rank)
 
-def displayCards(cards):
-    card_display = ''
-    for c in cards:
-        if not c.isHidden():
-            card_display += (c.getRank() + " of " + c.getSuit()).title() + '\n'
-        else:
-            card_display += '**Card Hidden**\n'
-    card_display = card_display[:-1]
-    print(card_display)
-    print("- - - - - - - -")
-
-def displayScore(hand: BlackjackCardSet):
-    low_score = hand.getTotals()[0]
-    high_score = hand.getTotals()[1]
-    score_display = 'Total value: ' + str(low_score)
-    score_display += ' or ' + str(high_score) if high_score > 0 else ''
-    print(score_display)
-    print("===============")
-
-def updateCardView(hand: BlackjackCardSet):
-    displayCards(hand.getCards())
-    displayScore(hand)
-
-def doHit(hand: BlackjackCardSet):
-    hand.addCard(drawCard())
-    updateCardView(hand)
-
 def canPlay(hand: BlackjackCardSet, is_dealer=False):
     can_play = True
 
@@ -59,59 +32,30 @@ def canPlay(hand: BlackjackCardSet, is_dealer=False):
 
 def isSuccessful(hand: BlackjackCardSet):
     if hand.getTotals()[0] > 21:
-        print("Bust!")
         return False
     return True
 
-def playHand(hand: BlackjackCardSet, is_dealer=False, force_hit=False):
-    whose = "Dealer's" if is_dealer else "Your"
-    if force_hit:
-        print(f"==============\n{whose} cards:\n")
-        doHit(hand)
-    
+def playHand(interface, hand: BlackjackCardSet, is_dealer=False, force_hit=False):
     action = Actions.HIT
     while canPlay(hand, is_dealer):
         if not is_dealer:
-            action = getAction(Actions.HIT, Actions.STAND)
+            action = interface.getAction(Actions.HIT, Actions.STAND)
         if action == Actions.HIT:
-            print(f"==============\n{whose} cards:\n")
-            doHit(hand)
+            hand.addCard(drawCard())
+            interface.updateCardView(hand, is_dealer=is_dealer)
         elif action == Actions.STAND:
             break
-
-def showOutcomeMessage(outcome):
-    print(outcome)
-
-def getAction(*actions):
-    btn_options = [f"'{a.value}'" for a in actions]
-    action_msg = ""
-    if Actions.SPLIT in actions:
-        btn_options.remove(f"'{Actions.SPLIT.value}'")
-        action_msg += "\nType 'split' if you'd like to split cards. "
-    if Actions.DOUBLE in actions:
-        btn_options.remove(f"'{Actions.DOUBLE.value}'")
-        action_msg += "\nType 'double' to double the bet. "
-    action_msg += f"\nType {' or '.join(btn_options)} to proceed. "
-
-    action = input(action_msg)
-    while action not in [a.value for a in actions]:
-        action = input(action_msg)
-    return Actions(action)
-
-def wantsToSplit():
-    split = input("Type 'split' to split your cards.  ") == 'split'
-    return split
 
 def getScore(hand: BlackjackCardSet):
     score = hand.getTotals()[1] if (0 < hand.getTotals()[1] <= 21) \
                                 else hand.getTotals()[0]
     return score
 
-def playRound():
+def playRound(interface):
     player_hand = [BlackjackCardSet()]
     dealer_hand = BlackjackCardSet()
     hidden_idx = 0
-    tie_msg, win_msg, loss_msg = "It's a tie!", "You won!", "You lost!"
+    tie_msg, win_msg, loss_msg = "It's a tie!\n", "You won!\n", "You lost!\n"
     # deal 2 initial cards for both
     for i in range(2):
         player_hand[0].addCard(drawCard())
@@ -119,41 +63,36 @@ def playRound():
     # hide the 1st card
     dealer_hand.hideCard(hidden_idx)
 
-
-    # """
-    # TEST CODE =========================
-    # """
+    """
+    TEST CODE =========================
+    """
     # player_hand = [BlackjackCardSet()]
-    # player_hand[0].addCard(Card('hearts', 'ace'))
-    # player_hand[0].addCard(Card('spades', 'ace'))
-    # """
-    # TEST CODE =========================
-    # """
+    # player_hand[0].addCard(Card('hearts', 'nine'))
+    # player_hand[0].addCard(Card('spades', 'nine'))
+    """
+    TEST CODE =========================
+    """
 
-
-    print("Your cards:\n")
-    updateCardView(player_hand[0])
-
-    print("\nDealer's cards:\n")
-    updateCardView(dealer_hand)
+    interface.updateCardView(player_hand[0])
+    interface.updateCardView(dealer_hand, is_dealer=True)
 
     # analyse player's cards for a NATURAL Blackjack
     if BLACKJACK in player_hand[0].getTotals():
         # compare to dealer's cards if NATURAL Blackjack
         dealer_hand.revealCard(hidden_idx)
-        updateCardView(dealer_hand)
+        interface.updateCardView(dealer_hand, is_dealer=True)
         if BLACKJACK in dealer_hand.getTotals():
-            showOutcomeMessage(tie_msg)
+            interface.showOutcomeMessage(tie_msg)
         else:
-            showOutcomeMessage("Blackjack! " + win_msg)
+            interface.showOutcomeMessage("Blackjack! " + win_msg)
         return
 
     # analyse dealer's cards for a NATURAL Blackjack (if up card is 11 or 10)
     if any(x in dealer_hand.getTotals() for x in [10, 11]):
         dealer_hand.revealCard(hidden_idx)
         if BLACKJACK in dealer_hand.getTotals():
-            updateCardView(dealer_hand)
-            showOutcomeMessage(loss_msg)
+            interface.updateCardView(dealer_hand, is_dealer=True)
+            interface.showOutcomeMessage("Dealer's got Blackjack! " + loss_msg)
             return
         else:
             dealer_hand.hideCard(hidden_idx)
@@ -163,32 +102,38 @@ def playRound():
     valid_hands = []
     for i in range(MAX_HANDS):
         if len(player_hand[i].getCards()) < 2:
-            doHit(player_hand[i])
+            player_hand[i].addCard(drawCard())
+            interface.updateCardView(player_hand[i])
         if i < MAX_HANDS - 1 and player_hand[i].canSplit():
-            action = getAction(Actions.HIT, Actions.STAND, Actions.SPLIT)
+            action = interface.getAction(Actions.HIT, Actions.STAND, Actions.SPLIT)
             if action == Actions.STAND:
                 break
             if action == Actions.SPLIT:
                 player_hand.append(player_hand[i].doSplit())
-            playHand(player_hand[i], force_hit=True)
+            player_hand[i].addCard(drawCard())
+            interface.updateCardView(player_hand[i])
+            playHand(interface, player_hand[i])
             valid_hands.append(isSuccessful(player_hand[i]))
+            if valid_hands[-1] == False:
+                interface.showOutcomeMessage("Bust!\n")
         else:
-            playHand(player_hand[i])
+            playHand(interface, player_hand[i])
             valid_hands.append(isSuccessful(player_hand[i]))
+            if valid_hands[-1] == False:
+                interface.showOutcomeMessage("Bust!\n")
             break
     valid_indices = [i for i in range(len(valid_hands)) if valid_hands[i]]
     
     # dealer Hits until result >= 17
-    print("===============\nDealer's cards:\n")
     dealer_hand.revealCard(hidden_idx)
-    updateCardView(dealer_hand)
+    interface.updateCardView(dealer_hand, is_dealer=True)
     if len(valid_indices) == 0:
-        showOutcomeMessage(loss_msg)
+        interface.showOutcomeMessage(loss_msg)
         return
 
-    playHand(dealer_hand, is_dealer=True)
+    playHand(interface, dealer_hand, is_dealer=True)
     if not isSuccessful(dealer_hand):
-        showOutcomeMessage(win_msg)
+        interface.showOutcomeMessage("Dealer bust! " + win_msg)
         return
 
     # compare results to player
@@ -196,46 +141,25 @@ def playRound():
     for v in valid_indices:                                     
         player_high = getScore(player_hand[v])
         if player_high == dealer_high:
-            showOutcomeMessage(tie_msg)
+            interface.showOutcomeMessage(tie_msg)
         elif player_high == BLACKJACK:
-            showOutcomeMessage("Blackjack! " + win_msg)
+            interface.showOutcomeMessage("Blackjack! " + win_msg)
         elif player_high > dealer_high:
-            showOutcomeMessage(win_msg)
+            interface.showOutcomeMessage(win_msg)
         else:
-            showOutcomeMessage(loss_msg)
-
-    return
-
-def runGame():
-    border = "========================================================\n"
-    nextGame = True
-    while nextGame:
-        print(border)
-        playRound()
-        # ask to play next game round
-        btn = input("\nType 'start' to play another round or 'exit' to leave. ")
-        nextGame = (btn == 'start')
-        print(border)
+            interface.showOutcomeMessage(loss_msg)
 
 def runGame(interface):
     # welcome message
-    print("Welcome to the game of Blackjack!\
-        \nType 'start' to begin.\
-        \nIf you would like to exit type 'exit'.\n")
+    interface.greet()
 
-    # start or exit game
-    btn = input("")
-    while btn not in ['start', 'exit']:
-        btn = input("Please type 'start' to begin or 'exit' to leave.")
+    # start round or exit game    
+    while interface.wantsToPlay():
+        interface.initializeView()
+        playRound(interface)
+        interface.clear()
 
-    if btn == 'exit':
-        print("Game closed.")
-        return
-    elif btn == 'start':
-        # start game
-        runGame()
-    
-    print("Game ended. Thank you for playing!\n")
+    print("Game closed. Thank you for playing!\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
