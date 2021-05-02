@@ -1,17 +1,12 @@
 # Game of Blackjack
+import argparse
+import blackjack_interface
+from blackjack_misc import Actions
 from random import randint
-from enum import Enum
-from blackjack_interface import TextInterface
 from cards import Card, BlackjackCardSet, SUITS, RANKS
 
 BLACKJACK = 21
 MAX_HANDS = 4
-
-class Actions(Enum):
-    HIT = 'hit'
-    STAND ='stand'
-    SPLIT ='split'
-    DOUBLE ='double'
 
 def drawCard():
     # generate a random suit out of 4 possible
