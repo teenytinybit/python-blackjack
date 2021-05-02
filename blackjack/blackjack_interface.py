@@ -20,6 +20,9 @@ class TextInterface(object):
     def clear(self):
         return
 
+    def close(self):
+        print("Game closed. Thank you for playing!\n")
+
     def displayCards(self, cards):
         card_display = ""
         for c in cards:

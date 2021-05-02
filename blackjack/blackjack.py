@@ -165,7 +165,7 @@ class BlackjackApp(object):
             self.playRound()
             self.interface.clear()
         
-    print("Game closed. Thank you for playing!\n")
+        self.interface.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
