@@ -18,7 +18,6 @@ class TextInterface(object):
         print("=" * 54 + "\n")
 
     def clear(self):
-        #TODO: clear interface from previous game details
         return
 
     def displayCards(self, cards):
