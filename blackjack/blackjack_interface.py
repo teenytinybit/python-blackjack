@@ -9,7 +9,8 @@ class TextInterface(object):
         self.BORDER_LENGTH = self.MARGIN + 4
 
     def _addCardsBorder(self):
-        print("- " * (self.BORDER_LENGTH // 2))
+        border = "- " * (self.BORDER_LENGTH // 2)
+        print(border.center(self.BORDER_LENGTH))
 
     def _addBorder(self):
         print("=" * self.BORDER_LENGTH)
