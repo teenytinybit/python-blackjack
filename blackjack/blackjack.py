@@ -52,7 +52,7 @@ class BlackjackApp(object):
             elif action == Actions.STAND:
                 break
 
-    def getScore(self, hand: BlackjackCardSet):
+    def getHighScore(self, hand: BlackjackCardSet):
         score = hand.getTotals()[1] if (0 < hand.getTotals()[1] <= 21) \
                                     else hand.getTotals()[0]
         return score
@@ -143,9 +143,9 @@ class BlackjackApp(object):
             return
 
         # compare results to player
-        dealer_high = self.getScore(dealer_hand)
+        dealer_high = self.getHighScore(dealer_hand)
         for v in valid_indices:                                     
-            player_high = self.getScore(player_hand[v])
+            player_high = self.getHighScore(player_hand[v])
             if player_high == dealer_high:
                 self.interface.showOutcomeMessage(tie_msg)
             elif player_high == BLACKJACK:
