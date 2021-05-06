@@ -36,6 +36,14 @@ class Card(object):
     def getValue(self):
         return self.value
 
+    def __str__(self):
+        return self.rank + " of " + self.suit
+
+    def __eq__(self, other):
+        if not isinstance(other, Card):
+            return NotImplemented
+        return (self.rank == other.rank and self.suit == other.suit)
+
 class BlackjackCardSet(object):
     def __init__(self, split=False):
         self.cards = []
@@ -97,3 +105,24 @@ class BlackjackCardSet(object):
 
     def getCards(self):
         return self.cards
+
+    def __str__(self):
+        cards_str = ""
+        for c in self.cards:
+            cards_str += str(c) + "\n"
+        cards_str = cards_str[:-1]
+        return cards_str
+
+    def __eq__(self, other):
+        if not isinstance(other, BlackjackCardSet):
+            return NotImplemented
+        if len(self.cards) != len(other.cards):
+            return False
+        
+        used_idx = []
+        for c in self.cards:
+            for i in range(len(other.cards)):
+                if (c == other.cards[i]) and (i not in used_idx):
+                    used_idx.append(i)
+                    break
+        return len(used_idx) == len(self.cards)
