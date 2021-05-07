@@ -5,3 +5,9 @@ class Actions(Enum):
     STAND ='stand'
     SPLIT ='split'
     DOUBLE ='double'
+
+class Outcome(Enum):
+    WIN = 'win'
+    BLACKJACK = 'blackjack'
+    LOSS = 'loss'
+    TIE = 'tie'
