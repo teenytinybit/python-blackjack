@@ -139,11 +139,10 @@ class BlackjackApp(object):
         # dealer Hits until result >= 17
         dealer_hand.revealCard(hidden_idx)
         self.interface.updateCardView(dealer_hand, is_dealer=True)
+        self.playHand(dealer_hand, is_dealer=True)
         if len(valid_indices) == 0:
             self.interface.showOutcomeMessage(messages[Outcome.LOSS.value])
             return
-
-        self.playHand(dealer_hand, is_dealer=True)
         if not self.isSuccessful(dealer_hand):
             self.interface.showOutcomeMessage("Dealer bust! " + messages[Outcome.WIN.value])
             return
