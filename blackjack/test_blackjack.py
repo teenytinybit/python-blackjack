@@ -12,6 +12,7 @@ class TestBlackjackAppGeneral(unittest.TestCase):
     def setUp(self):
         self.inter = TextInterface()
         self.app = BlackjackAppClass(self.inter)
+        self.app.interface.updateCardView = Mock() # to avoid excessive output to the console during tests
         self.cards = {
             'ace': CardClass(SUITS[3], RANKS[0][0]),
             'two': CardClass(SUITS[0], RANKS[1][0]),
@@ -50,7 +51,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
             suits.append(card.getSuit())
         for y in range(len(SUITS)):
             s_lst = [s for s in suits if s == SUITS[y]]
-            # print(f"{SUITS[y]} appears {len(s_lst)} times out of {times}")
             self.assertGreaterEqual(len(s_lst), target, msg=f"{SUITS[y]} appears less than {target} times out of {times}")
 
     def test_get_cards_different_ranks(self):
@@ -67,7 +67,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
 
         for y in range(len(RANKS)):
             r_lst = [r for r in ranks if r == RANKS[y][0]]
-            # print(f"{RANKS[y][0]} appears {len(r_lst)} times out of {times}")
             self.assertGreaterEqual(len(r_lst), target, msg=f"{RANKS[y][0]} appears less than {target} times out of {times}")
 
     def test_user_can_play_valid_cards_score2(self):
@@ -259,8 +258,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
         cards_control.addCard(self.cards['four'])
         cards_test = deepcopy(cards_control)
         
-        self.app.interface.updateCardView = Mock()      # to avoid excessive output to console during tests
-        
         with patch('builtins.input', return_value='stand') as input_mock:
             self.app.playHand(cards_test)
             input_mock.assert_called_once()
@@ -275,8 +272,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
         cards_control.addCard(self.cards['ten'])
         cards_control.addCard(self.cards['six'])
         cards_test = deepcopy(cards_control)
-        
-        self.app.interface.updateCardView = Mock()      # to avoid excessive output to console during tests
         
         with patch('builtins.input') as input_mock:
             self.app.playHand(cards_test)
@@ -293,8 +288,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
         cards_control.addCard(self.cards['four'])
         cards_test = deepcopy(cards_control)
 
-        self.app.interface.updateCardView = Mock()      # to avoid excessive output to console during tests
-        
         with patch('builtins.input') as input_mock:
             input_mock.side_effect = ['hit', 'stand']
             self.app.playHand(cards_test)
@@ -313,9 +306,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
         cards_test = deepcopy(cards_control)
 
         mock_card = self.cards['two']
-        
-        self.app.interface.updateCardView = Mock()      # to avoid excessive output to console during tests
-        
         with patch('builtins.input', return_value='hit') as input_mock:
             with patch('blackjack.BlackjackApp.drawCard', return_value=mock_card):
                 self.app.playHand(cards_test)
@@ -334,9 +324,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
         cards_test = deepcopy(cards_control)
 
         mock_card = self.cards['three']
-        
-        self.app.interface.updateCardView = Mock()      # to avoid excessive output to console during tests
-        
         with patch('builtins.input') as input_mock:
             input_mock.side_effect = ['hit'] * 4 + ['stand']
             with patch('blackjack.BlackjackApp.drawCard', return_value=mock_card):
@@ -382,9 +369,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
         cards_test = deepcopy(cards_control)
 
         mock_card = self.cards['jack']
-        
-        self.app.interface.updateCardView = Mock()      # to avoid excessive output to console during tests
-        
         with patch('blackjack.BlackjackApp.drawCard', return_value=mock_card):
             self.app.playHand(cards_test, is_dealer=True)
         self.assertEqual(len(cards_test.getCards()), 3)
@@ -401,9 +385,6 @@ class TestBlackjackAppGeneral(unittest.TestCase):
         cards_test = deepcopy(cards_control)
 
         mock_card = self.cards['three']
-        
-        self.app.interface.updateCardView = Mock()      # to avoid excessive output to console during tests
-        
         with patch('blackjack.BlackjackApp.drawCard', return_value=mock_card):
             self.app.playHand(cards_test, is_dealer=True)
         self.assertEqual(len(cards_test.getCards()), 7)
