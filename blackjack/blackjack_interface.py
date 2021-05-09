@@ -36,9 +36,9 @@ class TextInterface(object):
         print(card_display)
         self._addCardsBorder()
 
-    def displayScore(self, hand):
-        low_score = hand.getTotals()[0]
-        high_score = hand.getTotals()[1]
+    def displayScore(self, hand: BlackjackCardSet):
+        low_score = hand.getScore()[0]
+        high_score = hand.getScore()[1]
         score_display = "Total value: " + str(low_score)
         score_display += " or " + str(high_score) if high_score > 0 else ""
         print("| " + score_display.center(self.MARGIN) + " |")

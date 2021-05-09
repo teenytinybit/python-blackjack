@@ -47,9 +47,10 @@ class Card(object):
 class BlackjackCardSet(object):
     def __init__(self, split=False):
         self.cards = []
-        self.totals = [0] * 2
+        self.score = [0] * 2
         self.has_ace = False
         self.split = split
+        self.blackjack = False
 
     def addCard(self, card: Card):
         self.cards.append(card)
@@ -57,32 +58,8 @@ class BlackjackCardSet(object):
             self.has_ace = True
         self.__updateTotal()
 
-    def getCard(self, idx):
-        return self.cards[idx]
-
-    def __updateTotal(self):
-        low, high = 0, 1
-        ace_n = 0
-        totals = [0] * 2
-        for c in self.cards:
-            if not c.isHidden():
-                totals[low] = totals[low] + c.getValue()[low]
-                if c.getRank() == RANKS[0][0]:  # count an ace
-                    ace_n += 1
-        # use alt value for 1 ACE only, if the set has many
-        if ace_n > 0:
-            totals[high] = totals[low] + 10
-        self.totals = totals
-
-    def hideCard(self, idx):
-        if not self.cards[idx].isHidden():
-            self.cards[idx].toggleVisibility()
-        self.__updateTotal()
-
-    def revealCard(self, idx):
-        if self.cards[idx].isHidden():
-            self.cards[idx].toggleVisibility()
-        self.__updateTotal()
+    def canSplit(self):
+        return self.cards[0].getRank() == self.cards[1].getRank()
 
     def doSplit(self):
         split_set = BlackjackCardSet(split=True)
@@ -91,9 +68,13 @@ class BlackjackCardSet(object):
         self.split = True
         return split_set
     
+    def getScore(self):
+        return self.score
     def hasAce(self):
         return self.has_ace
     
+    def hasBlackjack(self):
+        return self.blackjack
     def isSplit(self):
         return self.split
 
@@ -103,8 +84,24 @@ class BlackjackCardSet(object):
     def getTotals(self):
         return self.totals
 
-    def getCards(self):
-        return self.cards
+    def __updateTotal(self):
+        low, high = 0, 1
+        visible_ace = 0
+        full_score = [0] * 2
+        visible_score = [0] * 2
+        for c in self.cards:
+            if not c.isHidden():
+                visible_score[low] = visible_score[low] + c.getValue()[low]
+                if c.getRank() == RANKS[0][0]:  # count an ace
+                    visible_ace += 1
+            full_score[low] = full_score[low] + c.getValue()[low]
+        # use alt value for 1 ACE only, if the set has many
+        if visible_ace > 0:
+            visible_score[high] = visible_score[low] + 10
+        if self.has_ace:
+            full_score[high] = full_score[low] + 10
+        self.score = visible_score
+        self.blackjack = 21 in full_score
 
     def __str__(self):
         cards_str = ""

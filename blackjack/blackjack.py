@@ -25,11 +25,11 @@ class BlackjackApp(object):
         can_play = True
 
         if is_dealer and hand.hasAce():
-            can_play = hand.getTotals()[1] < 17
+            can_play = hand.getScore()[1] < 17
         elif is_dealer:
-            can_play = hand.getTotals()[0] < 17
+            can_play = hand.getScore()[0] < 17
         else:
-            can_play = hand.getTotals()[0] < 21 and hand.getTotals()[1] != 21
+            can_play = hand.getScore()[0] < 21 and hand.getScore()[1] != 21
             if hand.isSplit():
                 first_card = hand.getCard(0)
                 can_play = can_play and first_card.getRank() != RANKS[0][0]    # if was not split from ace
@@ -37,7 +37,7 @@ class BlackjackApp(object):
         return can_play
 
     def isSuccessful(self, hand: BlackjackCardSet):
-        if hand.getTotals()[0] > 21:
+        if hand.getScore()[0] > 21:
             return False
         return True
 
@@ -53,8 +53,8 @@ class BlackjackApp(object):
                 break
 
     def getHighScore(self, hand: BlackjackCardSet):
-        score = hand.getTotals()[1] if (0 < hand.getTotals()[1] <= 21) \
-                                    else hand.getTotals()[0]
+        score = hand.getScore()[1] if (0 < hand.getScore()[1] <= 21) \
+                                    else hand.getScore()[0]
         return score
 
     def playRound(self):
@@ -89,25 +89,22 @@ class BlackjackApp(object):
         self.interface.updateCardView(dealer_hand, is_dealer=True)
 
         # analyse player's cards for a NATURAL Blackjack
-        if BLACKJACK in player_hand[0].getTotals():
+        if player_hand[0].hasBlackjack():
             # compare to dealer's cards if NATURAL Blackjack
             dealer_hand.revealCard(hidden_idx)
             self.interface.updateCardView(dealer_hand, is_dealer=True)
-            if BLACKJACK in dealer_hand.getTotals():
+            if dealer_hand.hasBlackjack():
                 self.interface.showOutcomeMessage(messages[Outcome.TIE.value])
             else:
                 self.interface.showOutcomeMessage(messages[Outcome.BLACKJACK.value])
             return
 
         # analyse dealer's cards for a NATURAL Blackjack (if up card is 11 or 10)
-        if any(x in dealer_hand.getTotals() for x in [10, 11]):
+        if dealer_hand.hasBlackjack():
             dealer_hand.revealCard(hidden_idx)
-            if BLACKJACK in dealer_hand.getTotals():
-                self.interface.updateCardView(dealer_hand, is_dealer=True)
-                self.interface.showOutcomeMessage("Dealer's got Blackjack! " + messages[Outcome.LOSS.value])
-                return
-            else:
-                dealer_hand.hideCard(hidden_idx)
+            self.interface.updateCardView(dealer_hand, is_dealer=True)
+            self.interface.showOutcomeMessage("Dealer's got Blackjack! " + messages[Outcome.LOSS.value])
+            return
 
         # allow splitting 2 same value cards, up to 4 hands allowed
         # player Hits or Stands 
