@@ -116,6 +116,7 @@ class BlackjackApp(object):
             if i < MAX_HANDS - 1 and player_hand[i].canSplit():
                 action = self.interface.getAction(Actions.HIT, Actions.STAND, Actions.SPLIT)
                 if action == Actions.STAND:
+                    valid_hands.append(self.isSuccessful(player_hand[i]))
                     break
                 if action == Actions.SPLIT:
                     player_hand.append(player_hand[i].doSplit())
