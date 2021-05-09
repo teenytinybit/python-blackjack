@@ -14,6 +14,18 @@ class Card(object):
         self.setValue(rank)
         self.hidden = False
 
+    def getSuit(self):
+        return self.suit
+
+    def getRank(self):
+        return self.rank
+
+    def getValue(self):
+        return self.value
+
+    def isHidden(self):
+        return self.hidden
+
     def setValue(self, rank):
         self.value = []
         for rec in RANKS:
@@ -23,18 +35,6 @@ class Card(object):
 
     def toggleVisibility(self):
         self.hidden = not self.hidden
-
-    def isHidden(self):
-        return self.hidden
-
-    def getSuit(self):
-        return self.suit
-
-    def getRank(self):
-        return self.rank
-
-    def getValue(self):
-        return self.value
 
     def __str__(self):
         return self.rank + " of " + self.suit
@@ -68,21 +68,33 @@ class BlackjackCardSet(object):
         self.split = True
         return split_set
     
+    def getCard(self, idx):
+        return self.cards[idx]
+
+    def getCards(self):
+        return self.cards
+
     def getScore(self):
         return self.score
+
     def hasAce(self):
         return self.has_ace
-    
+
     def hasBlackjack(self):
         return self.blackjack
+
+    def hideCard(self, idx):
+        if not self.cards[idx].isHidden():
+            self.cards[idx].toggleVisibility()
+        self.__updateTotal()
+
     def isSplit(self):
-        return self.split
+        return self.split    
 
-    def canSplit(self):
-        return self.cards[0].getValue() == self.cards[1].getValue()
-
-    def getTotals(self):
-        return self.totals
+    def revealCard(self, idx):
+        if self.cards[idx].isHidden():
+            self.cards[idx].toggleVisibility()
+        self.__updateTotal()
 
     def __updateTotal(self):
         low, high = 0, 1
