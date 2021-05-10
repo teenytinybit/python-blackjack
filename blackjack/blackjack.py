@@ -13,6 +13,8 @@ class BlackjackApp(object):
         self.name = "Blackjack Game"
         self.interface = interface
         self.win = None
+        self.player_hand = [BlackjackCardSet()]
+        self.dealer_hand = BlackjackCardSet()
 
     def drawCard(self):
         # generate a random suit out of 4 possible
@@ -58,8 +60,8 @@ class BlackjackApp(object):
         return score
 
     def playRound(self):
-        player_hand = [BlackjackCardSet()]
-        dealer_hand = BlackjackCardSet()
+        self.player_hand = [BlackjackCardSet()]
+        self.dealer_hand = BlackjackCardSet()
         hidden_idx = 0
         tie_msg, win_msg, loss_msg = "It's a tie!\n", "You won!\n", "You lost!\n"
         messages = {
@@ -70,39 +72,39 @@ class BlackjackApp(object):
         }
         # deal 2 initial cards for both
         for i in range(2):
-            player_hand[0].addCard(self.drawCard())
-            dealer_hand.addCard(self.drawCard())
+            self.player_hand[0].addCard(self.drawCard())
+            self.dealer_hand.addCard(self.drawCard())
         # hide the 1st card
-        dealer_hand.hideCard(hidden_idx)
+        self.dealer_hand.hideCard(hidden_idx)
 
         """
         TEST CODE =========================
         """
-        # player_hand = [BlackjackCardSet()]
-        # player_hand[0].addCard(Card('hearts', 'nine'))
-        # player_hand[0].addCard(Card('spades', 'nine'))
+        # self.player_hand = [BlackjackCardSet()]
+        # self.player_hand[0].addCard(Card('hearts', 'nine'))
+        # self.player_hand[0].addCard(Card('spades', 'nine'))
         """
         TEST CODE =========================
         """
 
-        self.interface.updateCardView(player_hand[0])
-        self.interface.updateCardView(dealer_hand, is_dealer=True)
+        self.interface.updateCardView(self.player_hand[0])
+        self.interface.updateCardView(self.dealer_hand, is_dealer=True)
 
         # analyse player's cards for a NATURAL Blackjack
-        if player_hand[0].hasBlackjack():
+        if self.player_hand[0].hasBlackjack():
             # compare to dealer's cards if NATURAL Blackjack
-            dealer_hand.revealCard(hidden_idx)
-            self.interface.updateCardView(dealer_hand, is_dealer=True)
-            if dealer_hand.hasBlackjack():
+            self.dealer_hand.revealCard(hidden_idx)
+            self.interface.updateCardView(self.dealer_hand, is_dealer=True)
+            if self.dealer_hand.hasBlackjack():
                 self.interface.showOutcomeMessage(messages[Outcome.TIE.value])
             else:
                 self.interface.showOutcomeMessage(messages[Outcome.BLACKJACK.value])
             return
 
         # analyse dealer's cards for a NATURAL Blackjack (if up card is 11 or 10)
-        if dealer_hand.hasBlackjack():
-            dealer_hand.revealCard(hidden_idx)
-            self.interface.updateCardView(dealer_hand, is_dealer=True)
+        if self.dealer_hand.hasBlackjack():
+            self.dealer_hand.revealCard(hidden_idx)
+            self.interface.updateCardView(self.dealer_hand, is_dealer=True)
             self.interface.showOutcomeMessage("Dealer's got Blackjack! " + messages[Outcome.LOSS.value])
             return
 
@@ -110,45 +112,45 @@ class BlackjackApp(object):
         # player Hits or Stands 
         valid_hands = []
         for i in range(MAX_HANDS):
-            if len(player_hand[i].getCards()) < 2:
-                player_hand[i].addCard(self.drawCard())
-                self.interface.updateCardView(player_hand[i])
-            if i < MAX_HANDS - 1 and player_hand[i].canSplit():
+            if len(self.player_hand[i].getCards()) < 2:
+                self.player_hand[i].addCard(self.drawCard())
+                self.interface.updateCardView(self.player_hand[i])
+            if i < MAX_HANDS - 1 and self.player_hand[i].canSplit():
                 action = self.interface.getAction(Actions.HIT, Actions.STAND, Actions.SPLIT)
                 if action == Actions.STAND:
-                    valid_hands.append(self.isSuccessful(player_hand[i]))
+                    valid_hands.append(self.isSuccessful(self.player_hand[i]))
                     break
                 if action == Actions.SPLIT:
-                    player_hand.append(player_hand[i].doSplit())
-                player_hand[i].addCard(self.drawCard())
-                self.interface.updateCardView(player_hand[i])
-                self.playHand(player_hand[i])
-                valid_hands.append(self.isSuccessful(player_hand[i]))
+                    self.player_hand.append(self.player_hand[i].doSplit())
+                self.player_hand[i].addCard(self.drawCard())
+                self.interface.updateCardView(self.player_hand[i])
+                self.playHand(self.player_hand[i])
+                valid_hands.append(self.isSuccessful(self.player_hand[i]))
                 if valid_hands[-1] == False:
                     self.interface.showOutcomeMessage("Bust!\n")
             else:
-                self.playHand(player_hand[i])
-                valid_hands.append(self.isSuccessful(player_hand[i]))
+                self.playHand(self.player_hand[i])
+                valid_hands.append(self.isSuccessful(self.player_hand[i]))
                 if valid_hands[-1] == False:
                     self.interface.showOutcomeMessage("Bust!\n")
                 break
         valid_indices = [i for i in range(len(valid_hands)) if valid_hands[i]]
         
         # dealer Hits until result >= 17
-        dealer_hand.revealCard(hidden_idx)
-        self.interface.updateCardView(dealer_hand, is_dealer=True)
-        self.playHand(dealer_hand, is_dealer=True)
+        self.dealer_hand.revealCard(hidden_idx)
+        self.interface.updateCardView(self.dealer_hand, is_dealer=True)
+        self.playHand(self.dealer_hand, is_dealer=True)
         if len(valid_indices) == 0:
             self.interface.showOutcomeMessage(messages[Outcome.LOSS.value])
             return
-        if not self.isSuccessful(dealer_hand):
+        if not self.isSuccessful(self.dealer_hand):
             self.interface.showOutcomeMessage("Dealer bust! " + messages[Outcome.WIN.value])
             return
 
         # compare results to player
-        dealer_high = self.getHighScore(dealer_hand)
+        dealer_high = self.getHighScore(self.dealer_hand)
         for v in valid_indices:                                     
-            player_high = self.getHighScore(player_hand[v])
+            player_high = self.getHighScore(self.player_hand[v])
             outcome = None
             if player_high == dealer_high:
                 outcome = Outcome.TIE
