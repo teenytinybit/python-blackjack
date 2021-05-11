@@ -2,6 +2,7 @@
 from blackjack_misc import Actions
 from cards import Card, BlackjackCardSet
 
+
 class TextInterface(object):
     def __init__(self):
         self.name = "Text Interface"
@@ -83,3 +84,10 @@ class TextInterface(object):
         while btn not in ['start', 'exit']:
             btn = input("Please type 'start' to begin or 'exit' to leave: ")
         return btn == 'start'
+
+
+class GraphicInterface(object):
+    def __init__(self):
+        self.name = "Graphic Interface"
+        self.MARGIN = 21
+        self.BORDER_LENGTH = self.MARGIN + 4
