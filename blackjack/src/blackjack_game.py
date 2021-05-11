@@ -1,8 +1,8 @@
 # Game of Blackjack
 import argparse
-import blackjack_interface
-from blackjack_misc import Actions, Outcome
 from random import randint
+import blackjack_interface
+from blackjack_misc import Actions, Outcome  # import Actions, Outcome
 from cards import Card, BlackjackCardSet, SUITS, RANKS
 
 BLACKJACK = 21
@@ -135,7 +135,7 @@ class BlackjackApp(object):
                     self.interface.showOutcomeMessage("Bust!\n")
                 break
         valid_indices = [i for i in range(len(valid_hands)) if valid_hands[i]]
-        
+
         # dealer Hits until result >= 17
         self.dealer_hand.revealCard(hidden_idx)
         self.interface.updateCardView(self.dealer_hand, is_dealer=True)
@@ -149,7 +149,7 @@ class BlackjackApp(object):
 
         # compare results to player
         dealer_high = self.getHighScore(self.dealer_hand)
-        for v in valid_indices:                                     
+        for v in valid_indices:
             player_high = self.getHighScore(self.player_hand[v])
             outcome = None
             if player_high == dealer_high:
@@ -171,7 +171,7 @@ class BlackjackApp(object):
             self.interface.initializeView()
             self.playRound()
             self.interface.clear()
-        
+
         self.interface.close()
 
 if __name__ == "__main__":
