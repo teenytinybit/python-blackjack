@@ -60,8 +60,6 @@ class BlackjackApp(object):
         return score
 
     def playRound(self):
-        self.player_hand = [BlackjackCardSet()]
-        self.dealer_hand = BlackjackCardSet()
         hidden_idx = 0
         tie_msg, win_msg, loss_msg = "It's a tie!\n", "You won!\n", "You lost!\n"
         messages = {
@@ -162,6 +160,10 @@ class BlackjackApp(object):
                 outcome = Outcome.LOSS
             self.interface.showOutcomeMessage(messages[outcome.value])
 
+    def resetCards(self):
+        self.player_hand = [BlackjackCardSet()]
+        self.dealer_hand = BlackjackCardSet()
+
     def runGame(self):
         # welcome message
         self.interface.greet()
@@ -170,6 +172,7 @@ class BlackjackApp(object):
         while self.interface.wantsToPlay():
             self.interface.initializeView()
             self.playRound()
+            self.resetCards()
             self.interface.clear()
 
         self.interface.close()
