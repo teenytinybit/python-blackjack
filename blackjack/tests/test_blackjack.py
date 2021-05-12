@@ -10,17 +10,34 @@ from blackjack_game import BlackjackApp as BlackjackAppClass
 from blackjack_interface import GraphicInterface, TextInterface
 from cards import Card as CardClass, BlackjackCardSet as CardSetClass, RANKS, SUITS
 
-class TestBlackjackApp(unittest.TestCase):
+class TestBlackjackBaseClass(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.inter = glob_interface()
+        cls.app = BlackjackAppClass(cls.inter)
+        cls.cards = {
+            'ace': CardClass(SUITS[3], RANKS[0][0]),
+            'two': CardClass(SUITS[0], RANKS[1][0]),
+            'three': CardClass(SUITS[1], RANKS[2][0]),
+            'four': CardClass(SUITS[2], RANKS[3][0]),
+            'five': CardClass(SUITS[3], RANKS[4][0]),
+            'six': CardClass(SUITS[0], RANKS[5][0]),
+            'seven': CardClass(SUITS[1], RANKS[6][0]),
+            'eight': CardClass(SUITS[2], RANKS[7][0]),
+            'nine': CardClass(SUITS[3], RANKS[8][0]),
+            'ten': CardClass(SUITS[0], RANKS[9][0]),
+            'jack': CardClass(SUITS[1], RANKS[10][0]),
+            'queen': CardClass(SUITS[2], RANKS[11][0]),
+            'king': CardClass(SUITS[3], RANKS[12][0])
+        }
+        cls.tie_msg = "It's a tie!\n"
+        cls.win_msg = "You won!\n"
+        cls.loss_msg = "You lost!\n"
+        cls.bust_msg = "Bust!\n"
 
 
-class TestBlackjackAppGetCard(TestBlackjackApp):
-
-    def setUp(self):
-        self.app = BlackjackAppClass(self.inter)
+class TestBlackjackAppGetCard(TestBlackjackBaseClass):
 
     def test_get_card(self):
         """
@@ -65,27 +82,7 @@ class TestBlackjackAppGetCard(TestBlackjackApp):
                                     msg=f"{RANKS[y][0]} appears less than {target} times out of {times}")
 
 
-class TestBlackjackAppCanPlayValidation(TestBlackjackApp):
-
-    def setUp(self):
-        # self.inter = TextInterface()
-        self.app = BlackjackAppClass(self.inter)
-
-        self.cards = {
-            'ace': CardClass(SUITS[3], RANKS[0][0]),
-            'two': CardClass(SUITS[0], RANKS[1][0]),
-            'three': CardClass(SUITS[1], RANKS[2][0]),
-            'four': CardClass(SUITS[2], RANKS[3][0]),
-            'five': CardClass(SUITS[3], RANKS[4][0]),
-            'six': CardClass(SUITS[0], RANKS[5][0]),
-            'seven': CardClass(SUITS[1], RANKS[6][0]),
-            'eight': CardClass(SUITS[2], RANKS[7][0]),
-            'nine': CardClass(SUITS[3], RANKS[8][0]),
-            'ten': CardClass(SUITS[0], RANKS[9][0]),
-            'jack': CardClass(SUITS[1], RANKS[10][0]),
-            'queen': CardClass(SUITS[2], RANKS[11][0]),
-            'king': CardClass(SUITS[3], RANKS[12][0])
-        }
+class TestBlackjackAppCanPlayValidation(TestBlackjackBaseClass):
 
     def test_user_can_play_valid_cards_score2(self):
         """
@@ -203,27 +200,7 @@ class TestBlackjackAppCanPlayValidation(TestBlackjackApp):
         self.assertFalse(can_play)
 
 
-class TestBlackjackAppScoreValidation(TestBlackjackApp):
-
-    def setUp(self):
-        # self.inter = TextInterface()
-        self.app = BlackjackAppClass(self.inter)
-
-        self.cards = {
-            'ace': CardClass(SUITS[3], RANKS[0][0]),
-            'two': CardClass(SUITS[0], RANKS[1][0]),
-            'three': CardClass(SUITS[1], RANKS[2][0]),
-            'four': CardClass(SUITS[2], RANKS[3][0]),
-            'five': CardClass(SUITS[3], RANKS[4][0]),
-            'six': CardClass(SUITS[0], RANKS[5][0]),
-            'seven': CardClass(SUITS[1], RANKS[6][0]),
-            'eight': CardClass(SUITS[2], RANKS[7][0]),
-            'nine': CardClass(SUITS[3], RANKS[8][0]),
-            'ten': CardClass(SUITS[0], RANKS[9][0]),
-            'jack': CardClass(SUITS[1], RANKS[10][0]),
-            'queen': CardClass(SUITS[2], RANKS[11][0]),
-            'king': CardClass(SUITS[3], RANKS[12][0])
-        }
+class TestBlackjackAppScoreValidation(TestBlackjackBaseClass):
 
     def test_valid_cards_not_bust(self):
         """
@@ -258,27 +235,7 @@ class TestBlackjackAppScoreValidation(TestBlackjackApp):
         self.assertFalse(success)
 
 
-class TestBlackjackAppScoreCalc(TestBlackjackApp):
-
-    def setUp(self):
-        # self.inter = TextInterface()
-        self.app = BlackjackAppClass(self.inter)
-
-        self.cards = {
-            'ace': CardClass(SUITS[3], RANKS[0][0]),
-            'two': CardClass(SUITS[0], RANKS[1][0]),
-            'three': CardClass(SUITS[1], RANKS[2][0]),
-            'four': CardClass(SUITS[2], RANKS[3][0]),
-            'five': CardClass(SUITS[3], RANKS[4][0]),
-            'six': CardClass(SUITS[0], RANKS[5][0]),
-            'seven': CardClass(SUITS[1], RANKS[6][0]),
-            'eight': CardClass(SUITS[2], RANKS[7][0]),
-            'nine': CardClass(SUITS[3], RANKS[8][0]),
-            'ten': CardClass(SUITS[0], RANKS[9][0]),
-            'jack': CardClass(SUITS[1], RANKS[10][0]),
-            'queen': CardClass(SUITS[2], RANKS[11][0]),
-            'king': CardClass(SUITS[3], RANKS[12][0])
-        }
+class TestBlackjackAppScoreCalc(TestBlackjackBaseClass):
 
     def test_high_score_calculation(self):
         """
@@ -313,28 +270,10 @@ class TestBlackjackAppScoreCalc(TestBlackjackApp):
         self.assertEqual(score, 15)
 
 
-class TestBlackjackAppPlaySingleHand(TestBlackjackApp):
+class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
 
     def setUp(self):
-        # self.inter = TextInterface()
-        self.app = BlackjackAppClass(self.inter)
-
         self.app.interface.updateCardView = Mock()  # to avoid excessive output to the console during tests
-        self.cards = {
-            'ace': CardClass(SUITS[3], RANKS[0][0]),
-            'two': CardClass(SUITS[0], RANKS[1][0]),
-            'three': CardClass(SUITS[1], RANKS[2][0]),
-            'four': CardClass(SUITS[2], RANKS[3][0]),
-            'five': CardClass(SUITS[3], RANKS[4][0]),
-            'six': CardClass(SUITS[0], RANKS[5][0]),
-            'seven': CardClass(SUITS[1], RANKS[6][0]),
-            'eight': CardClass(SUITS[2], RANKS[7][0]),
-            'nine': CardClass(SUITS[3], RANKS[8][0]),
-            'ten': CardClass(SUITS[0], RANKS[9][0]),
-            'jack': CardClass(SUITS[1], RANKS[10][0]),
-            'queen': CardClass(SUITS[2], RANKS[11][0]),
-            'king': CardClass(SUITS[3], RANKS[12][0])
-        }
 
     def test_user_plays_turn_valid_hand_stand(self):
         """
@@ -490,39 +429,19 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackApp):
         self.assertEqual(len(cards_test.getCards()), 7)
         self.assertCountEqual(cards_test.getCards()[:2], cards_control.getCards())
 
-
-class TestBlackjackAppPlayFullRound(TestBlackjackApp):
+# TODO: add tests for bets and total balance changes
+class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
 
     def setUp(self):
-        # self.inter = TextInterface()
-        self.app = BlackjackAppClass(self.inter)
-
-        self.tie_msg = "It's a tie!\n"
-        self.win_msg = "You won!\n"
-        self.loss_msg = "You lost!\n"
-        self.bust_msg = "Bust!\n"
-
         self.app.interface.updateCardView = Mock()  # to avoid excessive output to the console during tests
-        self.cards = {
-            'ace': CardClass(SUITS[3], RANKS[0][0]),
-            'two': CardClass(SUITS[0], RANKS[1][0]),
-            'three': CardClass(SUITS[1], RANKS[2][0]),
-            'four': CardClass(SUITS[2], RANKS[3][0]),
-            'five': CardClass(SUITS[3], RANKS[4][0]),
-            'six': CardClass(SUITS[0], RANKS[5][0]),
-            'seven': CardClass(SUITS[1], RANKS[6][0]),
-            'eight': CardClass(SUITS[2], RANKS[7][0]),
-            'nine': CardClass(SUITS[3], RANKS[8][0]),
-            'ten': CardClass(SUITS[0], RANKS[9][0]),
-            'jack': CardClass(SUITS[1], RANKS[10][0]),
-            'queen': CardClass(SUITS[2], RANKS[11][0]),
-            'king': CardClass(SUITS[3], RANKS[12][0])
-        }
+        self.app.resetCards()
 
     def test_natural_blackjack_user(self):
         """
         Test that checks for a natural blackjack before playing the hand,
         when user has blackjack
+
+        **Note** Also checks for the correct card distribution and qty
         """
         PREDEFINED_VALUES = [
             self.cards['ten'],  # user card
@@ -530,20 +449,24 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['ace'],  # user card
             self.cards['five']
         ]
-
-        draw_card_wrapper = Mock(wraps=self.app.drawCard)
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         def side_effect():
             if len(PREDEFINED_VALUES) > 0:
                 card_ref = PREDEFINED_VALUES.pop(0)
                 value = deepcopy(card_ref)
                 return value
-            return draw_card_wrapper()
 
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('builtins.print') as print_mock:
                 self.app.playRound()
                 print_mock.assert_called_once_with("Blackjack! " + self.win_msg)
+        
+        self.assertTrue(len(self.app.player_hand) == 1)
+        self.assertTrue(len(self.app.player_hand[0].getCards()) == 2)
+        self.assertEqual(self.app.player_hand[0].getCard(0), DRAWN_CARDS[0])
+        self.assertEqual(self.app.player_hand[0].getCard(1), DRAWN_CARDS[2])
+        self.assertTrue(len(self.app.dealer_hand.getCards()) == 2)
 
     def test_natural_blackjack_user_and_dealer(self):
         """
@@ -574,7 +497,6 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
     def test_natural_blackjack_dealer_only(self):
         """
         Test that checks dealer has natural blackjack before playing the hand
-        **Note** Also tests for natural blackjack check when dealer's visible card is 10
         """
         PREDEFINED_VALUES = [
             self.cards['two'],
@@ -582,25 +504,30 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['three'],
             self.cards['ace']  # dealer's card
         ]
-
-        draw_card_wrapper = Mock(wraps=self.app.drawCard)
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         def side_effect():
             if len(PREDEFINED_VALUES) > 0:
                 card_ref = PREDEFINED_VALUES.pop(0)
                 value = deepcopy(card_ref)
                 return value
-            return draw_card_wrapper()
 
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('builtins.print') as print_mock:
                 self.app.playRound()
                 print_mock.assert_called_once_with("Dealer's got Blackjack! " + self.loss_msg)
 
+        self.assertTrue(len(self.app.dealer_hand.getCards()) == 2)
+        self.assertEqual(self.app.dealer_hand.getCard(0), DRAWN_CARDS[1])
+        self.assertEqual(self.app.dealer_hand.getCard(1), DRAWN_CARDS[3])
+
     @patch('builtins.input')
     def test_game_flow_user_bust(self, input_mock):
         """
-        Test that correct message is displayed when user goes bust
+        Test that the game flow is correct when user goes bust
+        - correct message(s) displayed when user goes bust
+        - user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
 
         PREDEFINED_VALUES = [
@@ -609,6 +536,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['four'],  # user card
             self.cards['five']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['ten'].getSuit(), self.cards['ten'].getRank()
 
@@ -628,11 +556,21 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 print_mock.assert_any_call(self.bust_msg)
                 self.assertLess(print_call_args.index(self.bust_msg), print_call_args.index(self.loss_msg),
                                 msg="Should show bust message before the final game outcome is shown")
+        
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
 
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+        
     @patch('builtins.input')
     def test_game_flow_user_dealer_tie(self, input_mock):
         """
-        Test that correct message is displayed when it's a tie
+        Test that the game flow is correct when it's a tie
+        - correct message(s) displayed when it's a tie
+        - user and dealer final cards match the pre-defined cards (expected score)
         """
 
         # starting score of 6 for both
@@ -642,6 +580,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['four'],  # user card
             self.cards['four']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['six'].getSuit(), self.cards['six'].getRank()
 
@@ -657,11 +596,19 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             with patch('builtins.print') as print_mock:
                 self.app.playRound()
                 print_mock.assert_called_with(self.tie_msg)
+        
+        expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: expected_cards.addCard(ec)
+        self.assertEqual(expected_cards, self.app.dealer_hand)
+        self.assertEqual(self.app.player_hand[0], self.app.dealer_hand)
 
     @patch('builtins.input')
     def test_game_flow_dealer_win_no_blackjack(self, input_mock):
         """
-        Test that correct message is displayed when dealer wins with score < 21
+        Test that the game flow is correct when when dealer wins with score < 21
+        - correct message(s) displayed when dealer wins with score < 21
+        - user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
 
         # starting score of 6 for user, 8 for dealer
@@ -671,6 +618,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['four'],  # user card
             self.cards['six']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['six'].getSuit(), self.cards['six'].getRank()
 
@@ -687,10 +635,21 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 self.app.playRound()
                 print_mock.assert_called_with(self.loss_msg)
 
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)] * 2: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
     @patch('builtins.input')
     def test_game_flow_user_win_no_blackjack(self, input_mock):
         """
-        Test that correct message is displayed when user wins with score < 21
+        Test that the game flow is correct when when user wins with score < 21
+        - correct message(s) displayed when user wins with score < 21
+        - user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
 
         # starting score of 6 for user, 6/16 for dealer, 
@@ -701,6 +660,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['four'],  # user card
             self.cards['five']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['six'].getSuit(), self.cards['six'].getRank()
 
@@ -717,10 +677,21 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 self.app.playRound()
                 print_mock.assert_called_with(self.win_msg)
 
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
     @patch('builtins.input')
     def test_game_flow_user_win_blackjack(self, input_mock):
         """
-        Test that correct message is displayed when user wins with a Blackjack
+        Test that the game flow is correct when user user wins with a Blackjack
+        - correct message(s) displayed when user wins with a Blackjack
+        - user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
 
         # starting score of 6 for user, 6/16 for dealer, 
@@ -731,6 +702,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['six'],  # user card
             self.cards['five']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['six'].getSuit(), self.cards['six'].getRank()
 
@@ -747,11 +719,55 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 self.app.playRound()
                 print_mock.assert_called_with("Blackjack! " + self.win_msg)
 
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
+    @patch('builtins.input')
+    def test_cannot_split_different_rank_same_value_cards(self, input_mock):
+        """
+        Test that same value different rank cards cannot be split (eg., jack and queen, value 10)
+        - user has 1 card set
+        - user final cards match the pre-defined cards (expected score)
+        """
+        PREDEFINED_VALUES = [
+            self.cards['jack'],  # user card
+            self.cards['three'],
+            self.cards['queen'],  # user card
+            self.cards['four']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        draw_card_wrapper = Mock(wraps=self.app.drawCard)
+
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return draw_card_wrapper()
+
+        input_mock.side_effect = ['split'] + ['stand']
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            self.app.playRound()
+        self.assertEqual(len(self.app.player_hand), 1, msg="Player must have one card set")
+        
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2]: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        
     @patch('builtins.input')
     def test_split_flow_user_bust_all(self, input_mock):
         """
-        Test that when cards are split correct outcomes are displayed for each round played, 
-        when user busts all rounds
+        Test that the game flow is correct when cards are split 1 time and user busts both rounds
+        - correct message(s) displayed for each round played that the user goes bust
+        - user has two card sets
+        - user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
         PREDEFINED_VALUES = [
             self.cards['five'],  # user card
@@ -759,6 +775,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['five'],  # user card
             self.cards['four']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['seven'].getSuit(), self.cards['seven'].getRank()
 
@@ -780,12 +797,25 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 loss_idx = print_call_args.index(self.loss_msg)
                 self.assertTrue(all(b_id < loss_idx for b_id in bust_idx),
                                 msg="Should show bust messages before the final game outcome is shown")
+        self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
+        
+        player_expected_cards = CardSetClass()
+        for ec in [DRAWN_CARDS[0]] + [CardClass(suit, rank)] * 3: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        self.assertEqual(player_expected_cards, self.app.player_hand[1])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)] * 2: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
     @patch('builtins.input')
     def test_split_flow_user_stand_all(self, input_mock):
         """
-        Test that when cards are split correct outcomes are displayed for each round played, 
-        when user only stands on all rounds
+        Test that the game flow is correct when cards are split 1 time and user stands on all rounds
+        - correct message(s) displayed for the expected outcome
+        - user has two card sets
+        - user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
         PREDEFINED_VALUES = [
             self.cards['five'],  # user card
@@ -793,6 +823,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['five'],  # user card
             self.cards['four']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['seven'].getSuit(), self.cards['seven'].getRank()
 
@@ -811,11 +842,25 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 print_call_args = [cl[0][0] for cl in print_mock.call_args_list]
                 self.assertEqual(print_call_args.count(self.loss_msg), 2)
 
-    @skip("Cannot test without checking player's cards. Requires function re-writing.")
+        self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
+        
+        player_expected_cards = CardSetClass()
+        for ec in [DRAWN_CARDS[0], CardClass(suit, rank)]: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        self.assertEqual(player_expected_cards, self.app.player_hand[1])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)] * 2: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
     @patch('builtins.input')
     def test_split_flow_max_times(self, input_mock):
         """
-        Test that user can split cards up to 4 times and play each round
+        Test that the game flow is correct when cards are split 4 times (max)
+        - correct message(s) displayed for the expected outcome
+        - user has 4 card sets
+        - all user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
         PREDEFINED_VALUES = [
             self.cards['five'],  # user card
@@ -823,11 +868,12 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['five'],  # user card
             self.cards['four']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
-        # draw_card_wrapper = Mock(wraps=self.app.drawCard)
         suit_split, rank_split = self.cards['five'].getSuit(), self.cards['five'].getRank()
         suit, rank = self.cards['four'].getSuit(), self.cards['four'].getRank()
         USER_HITS = [12]
+        EVERY_THIRD_HIT = 3
 
         def side_effect():
             if len(PREDEFINED_VALUES) > 0:
@@ -835,27 +881,42 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 value = deepcopy(card_ref)
                 return value
             USER_HITS[0] = USER_HITS[0] - 1
-            if USER_HITS[0] > 0 and USER_HITS[0] % 3 == 0:
+            if USER_HITS[0] > 0 and USER_HITS[0] % EVERY_THIRD_HIT == 0:
                 return CardClass(suit_split, rank_split)
             else:
                 return CardClass(suit, rank)
 
-        input_mock.side_effect = ['split', 'hit', 'stand'] * 3 + ['hit', 'stand']
+        input_mock.side_effect = ['split', 'hit', 'stand'] * 4      # attempt to split more than max (4) times
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('builtins.print') as print_mock:
                 self.app.playRound()
-                # TODO: check was split 4 times
-                # check player hands are 4, and each of them played
-                # check dealer's cards, then check the oucome matches expected
-                # depending on outcome check, final message
-                # print_mock.assert_called_with(self.loss_msg)
+                # dealer scores 19, user scores 13 on all card sets, loss message x4 times
+                print_mock.assert_called_with(self.loss_msg)
                 print_call_args = [cl[0][0] for cl in print_mock.call_args_list]
+                self.assertEqual(print_call_args.count(self.loss_msg), 4)
+        
+        self.assertEqual(len(self.app.player_hand), 4)
+        
+        player_expected_cards = [CardSetClass() for i in range(4)]
+        for i in range(4):
+            player_expected_cards[i].addCard(CardClass(suit_split, rank_split))
+            player_expected_cards[i].addCard(CardClass(suit_split, rank_split) if i == 3 \
+                                        else CardClass(suit, rank))
+            player_expected_cards[i].addCard(CardClass(suit, rank))
+            self.assertEqual(player_expected_cards[i], self.app.player_hand[i])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)] * 3: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
     @patch('builtins.input')
     def test_split_flow_user_bust_and_win(self, input_mock):
         """
-        Test that when cards are split correct outcomes are displayed for each round played, 
-        when user busts one round and wins the other
+        Test that the game flow is correct when cards are split 1 time and user busts one round and wins the other
+        - correct message(s) displayed for for each round played
+        - user has 2 card sets
+        - all user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
         PREDEFINED_VALUES = [
             self.cards['five'],  # user card
@@ -863,6 +924,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['five'],  # user card
             self.cards['eight']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['seven'].getSuit(), self.cards['seven'].getRank()
 
@@ -882,12 +944,29 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 print_mock.assert_any_call(self.bust_msg)
                 self.assertLess(print_call_args.index(self.bust_msg), print_call_args.index(self.win_msg),
                                 msg="Should show bust message before the final game outcome is shown")
+        self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
+        
+        player_expected_cards = CardSetClass()
+        for ec in [DRAWN_CARDS[0]] + [CardClass(suit, rank)] * 3: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        
+        player_expected_cards2 = CardSetClass()
+        for ec in [DRAWN_CARDS[0]] + [CardClass(suit, rank)] * 2: player_expected_cards2.addCard(ec)
+        self.assertEqual(player_expected_cards2, self.app.player_hand[1])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
     @patch('builtins.input')
     def test_split_flow_user_win_and_lose(self, input_mock):
         """
-        Test that when cards are split correct outcomes are displayed for each round played, 
-        when user wins one round with a blackjack and loses the other by without bust
+        Test that the game flow is correct when cards are split 1 time and user wins one round 
+        with a blackjack and loses the other on points
+        - correct message(s) displayed for for each round played
+        - user has 2 card sets
+        - all user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
         """
         PREDEFINED_VALUES = [
             self.cards['five'],  # user card
@@ -895,6 +974,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
             self.cards['five'],  # user card
             self.cards['eight']
         ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
         suit, rank = self.cards['eight'].getSuit(), self.cards['eight'].getRank()
 
@@ -915,9 +995,19 @@ class TestBlackjackAppPlayFullRound(TestBlackjackApp):
                 self.assertLess(print_call_args.index("Blackjack! " + self.win_msg),
                                 print_call_args.index(self.loss_msg),
                                 msg="Should show win message before the loss message is shown in this case")
+        self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
 
-    def test_cannot_split_different_rank_same_value_cards(self):
-        return
+        player_expected_cards = CardSetClass()
+        for ec in [DRAWN_CARDS[0]] + [CardClass(suit, rank)] * 2: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        
+        player_expected_cards2 = CardSetClass()
+        for ec in [DRAWN_CARDS[0]] + [CardClass(suit, rank)]: player_expected_cards2.addCard(ec)
+        self.assertEqual(player_expected_cards2, self.app.player_hand[1])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
 
 class TestTextInterface(TestBlackjackApp):
