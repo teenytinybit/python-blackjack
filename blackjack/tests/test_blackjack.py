@@ -99,7 +99,7 @@ class TestBlackjackAppGetCard(TestBlackjackBaseClass):
         Test that a function produces different card suits out of 1000 generated
         """
         times = 10000
-        offset = times // 100  # 1% allowance
+        offset = times // 66  # 1.5% deviation allowance
         target = times // 4 - offset
         suits = []
         for i in range(times):
@@ -115,7 +115,7 @@ class TestBlackjackAppGetCard(TestBlackjackBaseClass):
         Test that a function produces different card ranks out of 2600 generated
         """
         times = 26000
-        offset = times // 100  # 1% allowance
+        offset = times // 66  # 1.5% deviation allowance
         target = times // 13 - offset
         ranks = []
         for i in range(times):
@@ -785,7 +785,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
-                outcome_mock.assert_called_with(self.blackjack_msg)
+                outcome_mock.assert_called_with(self.win_msg)
 
         player_expected_cards = CardSetClass()
         for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: player_expected_cards.addCard(ec)
@@ -795,7 +795,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
         self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
-        self.assertEqual(self.app.balance, 120)
+        self.assertEqual(self.app.balance, 110)
 
     @patch('builtins.input')
     def test_split_flow_no_split_diff_rank_same_value(self, input_mock):
@@ -1073,8 +1073,8 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
                 self.app.playRound()
                 func_call_args = [cl[0][0] for cl in outcome_mock.call_args_list]
                 outcome_mock.assert_called_with(self.loss_msg)
-                outcome_mock.assert_any_call(self.blackjack_msg)
-                self.assertLess(func_call_args.index(self.blackjack_msg),
+                outcome_mock.assert_any_call(self.win_msg)
+                self.assertLess(func_call_args.index(self.win_msg),
                                 func_call_args.index(self.loss_msg),
                                 msg="Should show win message before the loss message is shown in this case")
         self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
@@ -1091,7 +1091,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
         self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
-        self.assertEqual(self.app.balance, 110)
+        self.assertEqual(self.app.balance, 100)
 
 if __name__ == '__main__':
 
