@@ -31,10 +31,7 @@ class BlackjackApp(object):
         elif is_dealer:
             can_play = hand.getScore()[0] < 17
         else:
-            can_play = hand.getScore()[0] < 21 and hand.getScore()[1] != 21
-            if hand.isSplit():
-                first_card = hand.getCard(0)
-                can_play = can_play and first_card.getRank() != RANKS[0][0]    # if was not split from ace
+            can_play = not hand.isSplitFromAce() and hand.getScore()[0] < 21 and hand.getScore()[1] != 21
 
         return can_play
 
