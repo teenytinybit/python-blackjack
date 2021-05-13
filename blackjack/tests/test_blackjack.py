@@ -6,6 +6,7 @@ import unittest
 from copy import deepcopy
 from unittest.mock import Mock, patch
 from unittest.case import skip
+import test_cards
 from blackjack_game import BlackjackApp as BlackjackAppClass
 from blackjack_interface import GraphicInterface, TextInterface
 from cards import Card as CardClass, BlackjackCardSet as CardSetClass, RANKS, SUITS
@@ -758,7 +759,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             self.app.playRound()
         print_patch.stop()
-        
+
         self.assertEqual(len(self.app.player_hand), 1, msg="Player must have one card set")
         
         player_expected_cards = CardSetClass()
@@ -1014,48 +1015,27 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
         self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
-
-class TestTextInterface(TestBlackjackBaseClass):
-
-    def setUp(self) -> None:
-        return super().setUp()
-
-    @skip
-    def test_play_hand_updates_card_view_player(self):
-        return
-
-    @skip
-    def test_play_hand_updates_card_view_dealer(self):
-        return
-
-
-class TestGraphicInterface(TestBlackjackBaseClass):
-
-    def setUp(self) -> None:
-        return super().setUp()
-
-    @skip('Test not implemented yet')
-    def test_greeting(self):
-        return
-
-
 if __name__ == '__main__':
 
     def create_suite(test_cls):
         test_suite = []
-        for tc in test_classes:
+        for tc in test_cls:
             loaded_tests = unittest.TestLoader().loadTestsFromTestCase(tc)
             test_suite.append(loaded_tests)
         return test_suite
 
-    test_classes = [
+    card_class_tests = [test_cards.TestCardClassMethods, test_cards.TestCardSetClassMethods]
+    test_suite_cards = create_suite(card_class_tests)
+    unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(test_suite_cards))
+
+    app_class_tests = [
         TestBlackjackAppGetCard, TestBlackjackAppCanPlayValidation,
         TestBlackjackAppScoreValidation, TestBlackjackAppScoreCalc,
         TestBlackjackAppPlaySingleHand, TestBlackjackAppPlayFullRound
     ]
 
     # test with text interface
-    test_suite_text_game = create_suite(test_classes)
+    test_suite_text_game = create_suite(app_class_tests)
     glob_interface = TextInterface
     unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(test_suite_text_game))
 
