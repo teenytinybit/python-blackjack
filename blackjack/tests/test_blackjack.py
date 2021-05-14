@@ -12,6 +12,7 @@ from blackjack_game import BlackjackApp as BlackjackAppClass
 from blackjack_interface import GraphicInterface, TextInterface
 from cards import Card as CardClass, BlackjackCardSet as CardSetClass, RANKS, SUITS
 
+
 class TestBlackjackBaseClass(unittest.TestCase):
 
     @classmethod
