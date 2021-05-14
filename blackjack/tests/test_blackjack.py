@@ -6,7 +6,7 @@ import unittest
 from copy import deepcopy
 from unittest.mock import Mock, patch
 from unittest.case import skip
-import test_cards
+import test_cards, test_interface
 from blackjack_misc import Outcome, Actions
 from blackjack_game import BlackjackApp as BlackjackAppClass
 from blackjack_interface import GraphicInterface, TextInterface
@@ -475,7 +475,21 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         self.assertEqual(len(cards_test.getCards()), 7)
         self.assertCountEqual(cards_test.getCards()[:2], cards_control.getCards())
 
-# TODO: add tests for bets and total balance changes
+    @skip
+    def test_play_hand_updates_card_view_player(self):
+        """
+        """
+
+        return
+
+    @skip
+    def test_play_hand_updates_card_view_dealer(self):
+        """
+        """
+
+        return
+
+
 class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
 
     def setUp(self):
@@ -1105,6 +1119,10 @@ if __name__ == '__main__':
     card_class_tests = [test_cards.TestCardClassMethods, test_cards.TestCardSetClassMethods]
     test_suite_cards = create_suite(card_class_tests)
     unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(test_suite_cards))
+
+    interface_tests = [test_interface.TestTextInterface, test_interface.TestGraphicInterface]
+    test_suite_inter = create_suite(interface_tests)
+    unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(test_suite_inter))
 
     app_class_tests = [
         TestBlackjackAppBets, TestBlackjackAppGetCard, TestBlackjackAppCanPlayValidation,
