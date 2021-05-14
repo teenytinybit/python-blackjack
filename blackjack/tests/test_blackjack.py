@@ -1135,7 +1135,3 @@ if __name__ == '__main__':
     glob_interface = TextInterface
     unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(test_suite_text_game))
 
-    # test with graphical interface
-    # test_suite_graph_game = create_suite(test_classes)
-    # glob_interface = GraphicInterface
-    # unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(test_suite_graph_game))
