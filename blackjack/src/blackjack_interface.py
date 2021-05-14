@@ -1,5 +1,5 @@
 # Module for Blackjack inteface class and methods
-from blackjack_misc import Actions
+from blackjack_misc import Actions, ACCEPTED_BETS
 from cards import Card, BlackjackCardSet
 
 
@@ -8,6 +8,7 @@ class TextInterface(object):
         self.name = "Text Interface"
         self.MARGIN = 21
         self.BORDER_LENGTH = self.MARGIN + 4
+        self.GAME_BORDER = 54
 
     def _addCardsBorder(self):
         border = "- " * (self.BORDER_LENGTH // 2)
@@ -17,7 +18,7 @@ class TextInterface(object):
         print("=" * self.BORDER_LENGTH)
 
     def _addGameBorder(self):
-        print("=" * 54 + "\n")
+        print("=" * self.GAME_BORDER + "\n")
 
     def clear(self):
         return
@@ -25,7 +26,7 @@ class TextInterface(object):
     def close(self):
         print("Game closed. Thank you for playing!\n")
 
-    def displayCards(self, cards):
+    def _displayCards(self, cards):
         card_display = ""
         for c in cards:
             if not c.isHidden():
@@ -37,7 +38,7 @@ class TextInterface(object):
         print(card_display)
         self._addCardsBorder()
 
-    def displayScore(self, hand: BlackjackCardSet):
+    def _displayScore(self, hand: BlackjackCardSet):
         low_score = hand.getScore()[0]
         high_score = hand.getScore()[1]
         score_display = "Total value: " + str(low_score)
@@ -56,11 +57,22 @@ class TextInterface(object):
             btn_options.remove(f"'{Actions.DOUBLE.value}'")
             action_msg += "\nType 'double' to double the bet. "
         action_msg += f"\nType {' or '.join(btn_options)} to proceed. "
+        # TODO: make stand and hit default options or check for them
 
         action = input(action_msg)
         while action not in [a.value for a in actions]:
             action = input(action_msg)
         return Actions(action)
+
+    def getBet(self):
+        bet = 0
+        while bet not in ACCEPTED_BETS:
+            bet = input("Bets available {10, 25, 50 or 100}\nType in bet amount: ")
+            try:
+                bet = float(bet)
+            except:
+                bet = 0
+        return bet
 
     def greet(self):
         print("Welcome to the game of Blackjack!\n")
@@ -76,8 +88,8 @@ class TextInterface(object):
         title = (whose + " cards:").center(self.MARGIN)
         self._addBorder()
         print("| " + title + " |\n| " + " " * self.MARGIN + " |")
-        self.displayCards(hand.getCards())
-        self.displayScore(hand)
+        self._displayCards(hand.getCards())
+        self._displayScore(hand)
 
     def wantsToPlay(self):
         btn = ""

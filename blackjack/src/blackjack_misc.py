@@ -11,3 +11,5 @@ class Outcome(Enum):
     BLACKJACK = 'blackjack'
     LOSS = 'loss'
     TIE = 'tie'
+
+ACCEPTED_BETS = [10, 25, 50, 100]
