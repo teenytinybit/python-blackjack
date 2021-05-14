@@ -11,7 +11,7 @@ class Card(object):
     def __init__(self, suit, rank):
         self.suit = suit
         self.rank = rank
-        self.__setValue(rank)
+        self._setValue(rank)
         self.hidden = False
 
     def getSuit(self):
@@ -26,7 +26,7 @@ class Card(object):
     def isHidden(self):
         return self.hidden
 
-    def __setValue(self, rank):
+    def _setValue(self, rank):
         self.value = []
         for rec in RANKS:
             if rank == rec[0]:
@@ -56,7 +56,7 @@ class BlackjackCardSet(object):
         self.cards.append(card)
         if card.getRank() == RANKS[0][0]:
             self.has_ace = True
-        self.__updateTotal()
+        self._updateTotal()
 
     def canSplit(self):
         if len(self.cards) == 2 and not self.no_split:
@@ -66,7 +66,7 @@ class BlackjackCardSet(object):
     def doSplit(self):
         split_set = BlackjackCardSet(no_split=self.cards[0].getRank() == RANKS[0][0])
         split_set.addCard(self.cards.pop())
-        self.__updateTotal()
+        self._updateTotal()
         self.no_split = True
         return split_set
     
@@ -88,7 +88,7 @@ class BlackjackCardSet(object):
     def hideCard(self, idx):
         if not self.cards[idx].isHidden():
             self.cards[idx].toggleVisibility()
-        self.__updateTotal()
+        self._updateTotal()
 
     def isSplitFromAce(self):
         if self.no_split and len(self.cards) > 0:
@@ -98,9 +98,9 @@ class BlackjackCardSet(object):
     def revealCard(self, idx):
         if self.cards[idx].isHidden():
             self.cards[idx].toggleVisibility()
-        self.__updateTotal()
+        self._updateTotal()
 
-    def __updateTotal(self):
+    def _updateTotal(self):
         low, high = 0, 1
         visible_ace = 0
         full_score = [0] * 2
