@@ -187,12 +187,17 @@ class BlackjackApp(object):
 
         # start round or exit game    
         while self.interface.wantsToPlay():
+            self.setBet(self.interface.getBet())
             self.interface.initializeView()
             self.playRound()
             self.resetCards()
             self.interface.clear()
 
         self.interface.close()
+    
+    def setBet(self, bet):
+        self.bet = bet
+        self.bets = [bet]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -1,4 +1,5 @@
 import sys
+from unittest import mock
 from env import dev_path
 sys.path.append(dev_path)
 
@@ -83,6 +84,13 @@ class TestBlackjackAppBets(TestBlackjackBaseClass):
         self.app.adjustBalance(Outcome.LOSS, 0)
         self.assertEqual(self.app.balance, 110)
 
+    def test_set_bet(self):
+        """
+        Test that a bet and bets parameters are set correctly
+        """
+        self.app.setBet(20)
+        self.assertEqual(self.app.bet, 20)
+        self.assertListEqual(self.app.bets, [20])
 
 class TestBlackjackAppGetCard(TestBlackjackBaseClass):
 
@@ -1108,6 +1116,109 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
 
         self.assertEqual(self.app.balance, 100)
 
+
+class TestBlackjackAppRunGame(unittest.TestCase):
+
+    def setUp(self):
+        self.inter = glob_interface()
+        self.app = BlackjackAppClass(self.inter)
+        self.print_patch = patch('builtins.print', side_effect=Mock())
+        self.print_patch.start()
+
+    def tearDown(self):
+        self.print_patch.stop()
+
+    def test_has_greeting(self):
+        """
+        Test that when game runs, the interface calls greeting method
+        """
+        self.app.interface.wantsToPlay = Mock(return_value=False)
+        with patch('blackjack_interface.TextInterface.greet') as greeting:
+            self.app.runGame()
+            greeting.assert_called_once()
+
+    def test_wants_to_play_one_round(self):
+        """
+        Test that can play one round then end game
+        """
+        with patch('builtins.input', side_effect=['start', 25, 'exit']):
+            with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+                self.app.runGame()
+                play_round.assert_called_once()
+
+    def test_wants_to_play_multiple_rounds(self):
+        """
+        Test that can play multiple rounds
+        """
+        with patch('builtins.input', side_effect=['start', 25] * 3 + ['exit']):
+            with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+                self.app.runGame()
+                play_round.assert_called()
+                self.assertEqual(play_round.call_count, 3)
+        
+    def test_does_not_want_to_play_round(self):
+        """
+        Test that can exit game without playing any round
+        """
+        with patch('builtins.input', return_value='exit'):
+            with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+                self.app.runGame()
+                play_round.assert_not_called()
+
+    def test_custom_bet_one_round(self):
+        """
+        Test that a custom bet can be used to play a round
+        """
+        test_bet = 50
+        play_round = patch('blackjack_game.BlackjackApp.playRound')
+        input_patch = patch('builtins.input', side_effect=['start', 'exit'])
+        input_patch.start()
+        play_round.start()
+        with patch('blackjack_interface.TextInterface.getBet', return_value=test_bet) as get_bet:
+            with patch('blackjack_game.BlackjackApp.setBet') as set_bet:
+                self.app.runGame()
+                get_bet.assert_called_once()
+                set_bet.assert_called_once()
+        input_patch.stop()
+        play_round.stop()
+
+    def test_custom_bets_multiple_rounds(self):
+        """
+        Test that different custom bets can be set for each round
+        """
+        test_bets = [10, 25, 50, 100]
+        play_round = patch('blackjack_game.BlackjackApp.playRound')
+        input_patch = patch('builtins.input', side_effect=['start'] * 4 + ['exit'])
+        input_patch.start()
+        play_round.start()
+        with patch('blackjack_interface.TextInterface.getBet', side_effect=test_bets) as get_bet:
+            with patch('blackjack_game.BlackjackApp.setBet') as set_bet:
+                self.app.runGame()
+                get_bet.assert_called()
+                self.assertEqual(get_bet.call_count, 4)
+                set_bet.assert_called()
+                self.assertEqual(set_bet.call_count, 4)
+                bet_args = [bet_arg[0][0] for bet_arg in set_bet.call_args_list]
+                self.assertListEqual(test_bets, bet_args)
+        input_patch.stop()
+        play_round.stop()
+
+    def test_cards_reset_after_round(self):
+        """
+        Test that cards reset (empty) each round
+        """
+        play_round = patch('blackjack_game.BlackjackApp.playRound')
+        input_patch = patch('builtins.input', side_effect=['start', 10, 'start', 25, 'exit'])
+        input_patch.start()
+        play_round.start()
+        with patch('blackjack_game.BlackjackApp.resetCards') as reset_cards:
+            self.app.runGame()
+            reset_cards.assert_called()
+            self.assertEqual(reset_cards.call_count, 2)
+        input_patch.stop()
+        play_round.stop()
+
+
 if __name__ == '__main__':
 
     def create_suite(test_cls):
@@ -1128,7 +1239,8 @@ if __name__ == '__main__':
     app_class_tests = [
         TestBlackjackAppBets, TestBlackjackAppGetCard, TestBlackjackAppCanPlayValidation,
         TestBlackjackAppScoreValidation, TestBlackjackAppScoreCalc,
-        TestBlackjackAppPlaySingleHand, TestBlackjackAppPlayFullRound
+        TestBlackjackAppPlaySingleHand, TestBlackjackAppPlayFullRound,
+        TestBlackjackAppRunGame
     ]
 
     # test with text interface
