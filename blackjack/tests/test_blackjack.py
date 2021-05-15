@@ -861,6 +861,45 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         player_expected_cards = CardSetClass()
         for ec in DRAWN_CARDS[::2]: player_expected_cards.addCard(ec)
         self.assertEqual(player_expected_cards, self.app.player_hand[0])
+
+    @patch('builtins.input')
+    def test_split_flow_no_split_low_balance(self, input_mock):
+        """
+        Test that same cards cannot be split if the balance is insufficient
+        - user has 1 card set
+        - user final cards match the pre-defined cards (expected score)
+        - balance must reflect playing with a single card hand only
+        """
+        PREDEFINED_VALUES = [
+            self.cards['jack'],  # user card
+            self.cards['three'],
+            self.cards['jack'],  # user card
+            self.cards['four']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        suit, rank = self.cards['six'].getSuit(), self.cards['six'].getRank()
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return CardClass(suit, rank)
+
+        input_mock.side_effect = ['split'] + ['stand']
+        print_patch = patch('builtins.print')
+        print_patch.start()
+        self.app.setBet(100)
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            self.app.playRound()
+        print_patch.stop()
+
+        self.assertEqual(self.app.balance, 200)
+        self.assertEqual(len(self.app.player_hand), 1, msg="Player must have one card set")
+        
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2]: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
         
     @patch('builtins.input')
     def test_split_flow_user_bust_all(self, input_mock):

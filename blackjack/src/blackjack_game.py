@@ -128,7 +128,7 @@ class BlackjackApp(object):
             if len(self.player_hand[i].getCards()) < 2:
                 self.player_hand[i].addCard(self.drawCard())
                 self.interface.updateCardView(self.player_hand[i])
-            if i < MAX_HANDS - 1 and self.player_hand[i].canSplit():
+            if i < MAX_HANDS - 1 and self.player_hand[i].canSplit() and self.balance >= self.bet:
                 action = self.interface.getAction(Actions.HIT, Actions.STAND, Actions.SPLIT)
                 if action == Actions.STAND:
                     valid_hands.append(self.isSuccessful(self.player_hand[i]))
