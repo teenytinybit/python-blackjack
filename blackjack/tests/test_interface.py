@@ -315,7 +315,7 @@ class TestTextInterface(unittest.TestCase):
         test_bets = [10, 25, 50, 100]
         with patch('builtins.input', side_effect=test_bets):
             for bet in test_bets:
-                actual_bet = self.inter.getBet()
+                actual_bet = self.inter.getBet(100)
                 self.assertEqual(bet, actual_bet)
 
     def test_get_bet_negative(self):
@@ -324,7 +324,7 @@ class TestTextInterface(unittest.TestCase):
         """
         test_bets = [-10, -25, -50, -100, 10]
         with patch('builtins.input', side_effect=test_bets):
-            actual_bet = self.inter.getBet()
+            actual_bet = self.inter.getBet(100)
             self.assertEqual(10, actual_bet)
 
     def test_get_bet_non_standard(self):
@@ -333,7 +333,7 @@ class TestTextInterface(unittest.TestCase):
         """
         test_bets = [7, 33, 65, 70, 200, 25]
         with patch('builtins.input', side_effect=test_bets):
-            actual_bet = self.inter.getBet()
+            actual_bet = self.inter.getBet(100)
             self.assertEqual(25, actual_bet)
 
     def test_get_bet_zero(self):
@@ -342,7 +342,7 @@ class TestTextInterface(unittest.TestCase):
         """
         test_bets = [0, 50]
         with patch('builtins.input', side_effect=test_bets):
-            actual_bet = self.inter.getBet()
+            actual_bet = self.inter.getBet(100)
             self.assertEqual(50, actual_bet)
 
     def test_get_bet_non_int(self):
@@ -351,7 +351,16 @@ class TestTextInterface(unittest.TestCase):
         """
         test_bets = [0.5, 'abc', 10.3, 'hello', 50.99, 100.01, 25.0]
         with patch('builtins.input', side_effect=test_bets):
-            actual_bet = self.inter.getBet()
+            actual_bet = self.inter.getBet(100)
+            self.assertEqual(25, actual_bet)
+
+    def test_get_bet_low_balance(self):
+        """
+        Test that bets available do not exceed total balance
+        """
+        test_bets = [50, 100, 25]
+        with patch('builtins.input', side_effect=test_bets):
+            actual_bet = self.inter.getBet(30)
             self.assertEqual(25, actual_bet)
 
 

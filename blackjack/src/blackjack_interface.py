@@ -64,10 +64,11 @@ class TextInterface(object):
             action = input(action_msg)
         return Actions(action)
 
-    def getBet(self):
+    def getBet(self, balance):
         bet = 0
-        while bet not in ACCEPTED_BETS:
-            bet = input("Bets available {10, 25, 50 or 100}\nType in bet amount: ")
+        available = [ab for ab in ACCEPTED_BETS if ab <= balance]
+        while bet not in available:
+            bet = input("Bets available {" + ", ".join([str(a) for a in available]) + "}\nType in bet amount: ")
             try:
                 bet = float(bet)
             except:

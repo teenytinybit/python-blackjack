@@ -21,11 +21,11 @@ class BlackjackApp(object):
     
     def adjustBalance(self, outcome, hand: int):
         if outcome == Outcome.BLACKJACK:
-            self.balance = self.balance + self.bets[hand] * 2
+            self.balance = self.balance + self.bets[hand] * 3
         elif outcome == Outcome.WIN:
+            self.balance = self.balance + self.bets[hand] * 2
+        elif outcome == Outcome.TIE:
             self.balance = self.balance + self.bets[hand]
-        elif outcome == Outcome.LOSS:
-            self.balance = self.balance - self.bets[hand]
 
     def drawCard(self):
         # generate a random suit out of 4 possible
@@ -67,6 +67,9 @@ class BlackjackApp(object):
                                     else hand.getScore()[0]
         return score
 
+    def placeBet(self, hand: int):
+        self.balance = self.balance - self.bets[hand]
+
     def playRound(self):
         hidden_idx = 0
         tie_msg, win_msg, loss_msg = "It's a tie!\n", "You won!\n", "You lost!\n"
@@ -76,6 +79,7 @@ class BlackjackApp(object):
             'loss': loss_msg,
             'tie':tie_msg
         }
+        self.placeBet(0)
         # deal 2 initial cards for both
         for i in range(2):
             self.player_hand[0].addCard(self.drawCard())
@@ -132,6 +136,7 @@ class BlackjackApp(object):
                 if action == Actions.SPLIT:
                     self.player_hand.append(self.player_hand[i].doSplit())
                     self.bets.append(self.bet)
+                    self.placeBet(i)
                 self.player_hand[i].addCard(self.drawCard())
                 self.interface.updateCardView(self.player_hand[i])
                 self.playHand(self.player_hand[i])
@@ -186,8 +191,8 @@ class BlackjackApp(object):
         self.interface.greet()
 
         # start round or exit game    
-        while self.interface.wantsToPlay():
-            self.setBet(self.interface.getBet())
+        while self.balance >= 10 and self.interface.wantsToPlay():
+            self.setBet(self.interface.getBet(self.balance))
             self.interface.initializeView()
             self.playRound()
             self.resetCards()

@@ -1,5 +1,4 @@
 import sys
-from unittest import mock
 from env import dev_path
 sys.path.append(dev_path)
 
@@ -52,28 +51,28 @@ class TestBlackjackAppBets(TestBlackjackBaseClass):
         Test that balance is adjusted accordingly when user wins
         """
         self.app.adjustBalance(Outcome.WIN, 0)
-        self.assertEqual(self.app.balance, 110)
+        self.assertEqual(self.app.balance, 120)
 
     def test_adjust_bet_loss(self):
         """
         Test that balance is adjusted accordingly when user loses
         """
         self.app.adjustBalance(Outcome.LOSS, 0)
-        self.assertEqual(self.app.balance, 90)
+        self.assertEqual(self.app.balance, 100)
 
     def test_adjust_bet_tie(self):
         """
         Test that balance does not change when it's a tie
         """
         self.app.adjustBalance(Outcome.TIE, 0)
-        self.assertEqual(self.app.balance, 100)
+        self.assertEqual(self.app.balance, 110)
 
     def test_adjust_bet_blackjack(self):
         """
         Test that balance is adjusted accordingly when user wins with a Blackjack
         """
         self.app.adjustBalance(Outcome.BLACKJACK, 0)
-        self.assertEqual(self.app.balance, 120)
+        self.assertEqual(self.app.balance, 130)
 
     def test_adjust_bet_multiple_outcomes(self):
         """
@@ -82,15 +81,21 @@ class TestBlackjackAppBets(TestBlackjackBaseClass):
         self.app.adjustBalance(Outcome.BLACKJACK, 0)
         self.app.adjustBalance(Outcome.TIE, 0)
         self.app.adjustBalance(Outcome.LOSS, 0)
-        self.assertEqual(self.app.balance, 110)
+        self.assertEqual(self.app.balance, 140)
 
     def test_set_bet(self):
         """
-        Test that a bet and bets parameters are set correctly
+        Test that a bet, bets and balance parameters are set correctly
         """
         self.app.setBet(20)
         self.assertEqual(self.app.bet, 20)
         self.assertListEqual(self.app.bets, [20])
+
+    def test_place_bet(self):
+        self.app.setBet(30)
+        self.app.placeBet(0)
+        self.assertEqual(self.app.balance, 70)
+
 
 class TestBlackjackAppGetCard(TestBlackjackBaseClass):
 
@@ -1217,7 +1222,50 @@ class TestBlackjackAppRunGame(unittest.TestCase):
             self.assertEqual(reset_cards.call_count, 2)
         input_patch.stop()
         play_round.stop()
+        
+    def test_balance_valid_can_play(self):
+        """
+        Test that a game can be played with a sufficient balance
+        """
+        get_bet = patch('blackjack_interface.TextInterface.getBet', return_value=25)
+        input_patch = patch('builtins.input', side_effect=['start', 'exit'])
+        input_patch.start()
+        get_bet.start()
+        with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+            self.app.runGame()
+            play_round.assert_called_once()
+        input_patch.stop()
+        get_bet.stop()
 
+    def test_balance_insufficient_cannot_play(self):
+        """
+        Test that a game cannot be played with an insufficient balance
+        """
+        self.app.balance = 50
+        input_patch = patch('builtins.input', side_effect=['start', 100, 25, 'exit'])
+        input_patch.start()
+        with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+            self.app.runGame()
+            play_round.assert_called_once()
+            self.assertEqual(self.app.bet, 25)
+        input_patch.stop()
+    
+    def test_balance_low_can_play_limited_rounds(self):
+        """
+        Test that a game can be played only as many times as the balance allow
+        """
+        def lose_bet():
+            self.app.balance = self.app.balance - 10
+        input_patch = patch('builtins.input', side_effect=['start'] * 11 + ['exit'])
+        input_patch.start()
+        get_bet = patch('blackjack_interface.TextInterface.getBet', return_value=10)
+        get_bet.start()
+        with patch('blackjack_game.BlackjackApp.playRound', side_effect=lose_bet) as play_round:
+            self.app.runGame()
+            play_round.assert_called()
+            self.assertEqual(play_round.call_count, 10)
+        get_bet.stop()
+        input_patch.stop()
 
 if __name__ == '__main__':
 
