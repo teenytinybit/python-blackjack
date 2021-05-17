@@ -4,7 +4,7 @@ sys.path.append(dev_path)
 
 import unittest
 from copy import deepcopy
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 from unittest.case import skip
 import test_cards, test_interface
 from blackjack_misc import Outcome, Actions
@@ -506,10 +506,16 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
 
 class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
 
+    def get_patch(self, target, **kwargs):
+        target_patch = patch(target, **kwargs)
+        self.addCleanup(target_patch.stop)
+        return target_patch.start()
+
     def setUp(self):
         self.app = BlackjackAppClass(self.inter)
         self.app.interface.updateCardView = Mock()  # to avoid excessive output to the console during tests
         self.app.resetCards()
+        self.print_patch = self.get_patch('builtins.print', side_effect=Mock())
 
     def test_natural_blackjack_user(self):
         """
@@ -531,10 +537,12 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
                 card_ref = PREDEFINED_VALUES.pop(0)
                 value = deepcopy(card_ref)
                 return value
-
+        
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
+                balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_once_with(self.blackjack_msg)
         
         self.assertTrue(len(self.app.player_hand) == 1)
@@ -563,10 +571,12 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
                 card_ref = PREDEFINED_VALUES.pop(0)
                 value = deepcopy(card_ref)
                 return value
-
+        
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
+                balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_once_with(self.tie_msg)
 
         self.assertTrue(len(self.app.player_hand) == 1)
@@ -598,9 +608,11 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
                 value = deepcopy(card_ref)
                 return value
 
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
+                balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_once_with("Dealer's got Blackjack! " + self.loss_msg)
 
         self.assertTrue(len(self.app.dealer_hand.getCards()) == 2)
@@ -636,14 +648,12 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.return_value = 'hit'
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
-                func_call_args = [cl[0][0] for cl in outcome_mock.call_args_list]
-                outcome_mock.assert_called_with(self.loss_msg)
-                outcome_mock.assert_any_call(self.bust_msg)
-                self.assertLess(func_call_args.index(self.bust_msg), func_call_args.index(self.loss_msg),
-                                msg="Should show bust message before the final game outcome is shown")
+                outcome_mock.assert_has_calls([call(self.bust_msg)], call(self.loss_msg))
+                balance_displ.assert_called_once_with(90)
         
         player_expected_cards = CardSetClass()
         for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: player_expected_cards.addCard(ec)
@@ -682,9 +692,11 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)  # ensures both user + dealer reach score 18
 
         input_mock.side_effect = ['hit', 'hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
+                balance_displ.assert_has_calls([call(90), call(100)])
                 outcome_mock.assert_called_with(self.tie_msg)
         
         expected_cards = CardSetClass()
@@ -722,9 +734,11 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['hit', 'hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
+                balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_with(self.loss_msg)
 
         player_expected_cards = CardSetClass()
@@ -766,9 +780,11 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['hit', 'hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
+                balance_displ.assert_has_calls([call(90), call(110)])
                 outcome_mock.assert_called_with(self.win_msg)
 
         player_expected_cards = CardSetClass()
@@ -810,9 +826,11 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['hit', 'hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
+                balance_displ.assert_has_calls([call(90), call(110)])
                 outcome_mock.assert_called_with(self.win_msg)
 
         player_expected_cards = CardSetClass()
@@ -840,27 +858,26 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         ]
         DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
 
-        draw_card_wrapper = Mock(wraps=self.app.drawCard)
-
+        suit, rank = self.cards['five'].getSuit(), self.cards['five'].getRank()
         def side_effect():
             if len(PREDEFINED_VALUES) > 0:
                 card_ref = PREDEFINED_VALUES.pop(0)
                 value = deepcopy(card_ref)
                 return value
-            return draw_card_wrapper()
+            return CardClass(suit, rank)
 
         input_mock.side_effect = ['split'] + ['stand']
-        print_patch = patch('builtins.print')
-        print_patch.start()
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             self.app.playRound()
-        print_patch.stop()
-
+            balance_displ.assert_has_calls([call(90), call(110)])
         self.assertEqual(len(self.app.player_hand), 1, msg="Player must have one card set")
         
         player_expected_cards = CardSetClass()
         for ec in DRAWN_CARDS[::2]: player_expected_cards.addCard(ec)
         self.assertEqual(player_expected_cards, self.app.player_hand[0])
+
+        self.assertEqual(self.app.balance, 110)
 
     @patch('builtins.input')
     def test_split_flow_no_split_low_balance(self, input_mock):
@@ -887,12 +904,11 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['split'] + ['stand']
-        print_patch = patch('builtins.print')
-        print_patch.start()
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         self.app.setBet(100)
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             self.app.playRound()
-        print_patch.stop()
+            balance_displ.assert_has_calls([call(0), call(200)])
 
         self.assertEqual(self.app.balance, 200)
         self.assertEqual(len(self.app.player_hand), 1, msg="Player must have one card set")
@@ -928,16 +944,13 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['split'] + ['hit'] * 4
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
-                func_call_args = [cl[0][0] for cl in outcome_mock.call_args_list]
-                bust_idx = [arg.index(self.bust_msg) for arg in func_call_args if arg == self.bust_msg]
-                self.assertEqual(len(bust_idx), 2)
-                outcome_mock.assert_called_with(self.loss_msg)
-                loss_idx = func_call_args.index(self.loss_msg)
-                self.assertTrue(all(b_id < loss_idx for b_id in bust_idx),
-                                msg="Should show bust messages before the final game outcome is shown")
+                outcome_mock.assert_has_calls([call(self.bust_msg)] * 2, call(self.loss_msg))
+                balance_displ.assert_has_calls([call(90), call(80)])
+                self.assertEqual(balance_displ.call_count, 2)
         self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
         
         player_expected_cards = CardSetClass()
@@ -978,12 +991,13 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['split'] + ['stand'] * 2
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
-                outcome_mock.assert_called_with(self.loss_msg)
-                func_call_args = [cl[0][0] for cl in outcome_mock.call_args_list]
-                self.assertEqual(func_call_args.count(self.loss_msg), 2)
+                outcome_mock.assert_has_calls([call(self.loss_msg)] * 2)           
+                balance_displ.assert_has_calls([call(90), call(80)])
+                self.assertEqual(balance_displ.call_count, 2)
 
         self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
         
@@ -999,9 +1013,9 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         self.assertEqual(self.app.balance, 80)
 
     @patch('builtins.input')
-    def test_split_flow_max_times(self, input_mock):
+    def test_split_flow_max_times_loss(self, input_mock):
         """
-        Test that the game flow is correct when cards are split 4 times (max)
+        Test that the game flow is correct when cards are split 4 times (max) and user loses all times
         - correct message(s) displayed for the expected outcome
         - user has 4 card sets
         - all user final cards match the pre-defined cards (expected score)
@@ -1031,14 +1045,15 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             else:
                 return CardClass(suit, rank)
 
-        input_mock.side_effect = ['split', 'hit', 'stand'] * 4      # attempt to split more than max (4) times
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        input_mock.side_effect = ['split', 'hit', 'stand'] * 4      # attempt to split to more than max (4) hands
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
                 # dealer scores 19, user scores 13 on all card sets, loss message x4 times
-                outcome_mock.assert_called_with(self.loss_msg)
-                func_call_args = [cl[0][0] for cl in outcome_mock.call_args_list]
-                self.assertEqual(func_call_args.count(self.loss_msg), 4)
+                outcome_mock.assert_has_calls([call(self.loss_msg)] * 4)
+                balance_displ.assert_has_calls([call(90), call(80), call(70), call(60)])
+                self.assertEqual(balance_displ.call_count, 4)
         
         self.assertEqual(len(self.app.player_hand), 4)
         
@@ -1055,6 +1070,70 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
         self.assertEqual(self.app.balance, 60)
+
+    @patch('builtins.input')
+    def test_split_flow_max_times_win(self, input_mock):
+        """
+        Test that the game flow is correct when cards are split 4 times (max) and wins all times
+        - correct message(s) displayed for the expected outcome
+        - user has 4 card sets
+        - all user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
+        """
+        PREDEFINED_VALUES = [
+            self.cards['five'],  # user card
+            self.cards['five'],
+            self.cards['five'],  # user card
+            self.cards['ace']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        suit_split, rank_split = self.cards['five'].getSuit(), self.cards['five'].getRank()
+        suit, rank = self.cards['seven'].getSuit(), self.cards['seven'].getRank()
+        USER_HITS = [12]
+        EVERY_THIRD_HIT = 3
+
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            USER_HITS[0] = USER_HITS[0] - 1
+            if USER_HITS[0] > 0 and USER_HITS[0] % EVERY_THIRD_HIT == 0:
+                return CardClass(suit_split, rank_split)
+            else:
+                return CardClass(suit, rank)
+
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        input_mock.side_effect = ['split', 'hit', 'stand'] * 4      # attempt to split to more than max (4) hands
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
+                self.app.playRound()
+                # dealer scores 13, user scores 19 (and 17) on all card sets, win message x4 times
+                outcome_mock.assert_called_with(self.win_msg)
+                # TODO: implement calls checks
+                outcome_mock.assert_has_calls([call(self.win_msg)] * 4)
+                balance_displ.assert_has_calls([
+                    call(90), call(80), call(70), call(60), 
+                    call(80), call(100), call(120), call(140)
+                ])
+                self.assertEqual(balance_displ.call_count, 8)
+        
+        self.assertEqual(len(self.app.player_hand), 4)
+        
+        player_expected_cards = [CardSetClass() for i in range(4)]
+        for i in range(4):
+            player_expected_cards[i].addCard(CardClass(suit_split, rank_split))
+            player_expected_cards[i].addCard(CardClass(suit_split, rank_split) if i == 3 \
+                                        else CardClass(suit, rank))
+            player_expected_cards[i].addCard(CardClass(suit, rank))
+            self.assertEqual(player_expected_cards[i], self.app.player_hand[i])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
+        self.assertEqual(self.app.balance, 140)
 
     @patch('builtins.input')
     def test_split_flow_user_bust_and_win(self, input_mock):
@@ -1083,14 +1162,13 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['split'] + ['hit'] * 3 + ['stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
-                func_call_args = [cl[0][0] for cl in outcome_mock.call_args_list]
-                outcome_mock.assert_called_with(self.win_msg)
-                outcome_mock.assert_any_call(self.bust_msg)
-                self.assertLess(func_call_args.index(self.bust_msg), func_call_args.index(self.win_msg),
-                                msg="Should show bust message before the final game outcome is shown")
+                outcome_mock.assert_has_calls([call(self.bust_msg)], call(self.win_msg))
+                balance_displ.assert_has_calls([call(90), call(80), call(100)])
+                self.assertEqual(balance_displ.call_count, 3)
         self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
         
         player_expected_cards = CardSetClass()
@@ -1135,15 +1213,13 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         input_mock.side_effect = ['split', 'hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
-                func_call_args = [cl[0][0] for cl in outcome_mock.call_args_list]
-                outcome_mock.assert_called_with(self.loss_msg)
-                outcome_mock.assert_any_call(self.win_msg)
-                self.assertLess(func_call_args.index(self.win_msg),
-                                func_call_args.index(self.loss_msg),
-                                msg="Should show win message before the loss message is shown in this case")
+                outcome_mock.assert_has_calls([call(self.win_msg)], call(self.loss_msg))
+                balance_displ.assert_has_calls([call(90), call(80), call(100)])
+                self.assertEqual(balance_displ.call_count, 3)
         self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
 
         player_expected_cards = CardSetClass()
@@ -1163,14 +1239,15 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
 
 class TestBlackjackAppRunGame(unittest.TestCase):
 
+    def get_patch(self, target, **kwargs):
+        target_patch = patch(target, **kwargs)
+        self.addCleanup(target_patch.stop)
+        return target_patch.start()
+
     def setUp(self):
         self.inter = glob_interface()
         self.app = BlackjackAppClass(self.inter)
-        self.print_patch = patch('builtins.print', side_effect=Mock())
-        self.print_patch.start()
-
-    def tearDown(self):
-        self.print_patch.stop()
+        self.print_patch = self.get_patch('builtins.print', side_effect=Mock())
 
     def test_has_greeting(self):
         """
@@ -1214,27 +1291,21 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         Test that a custom bet can be used to play a round
         """
         test_bet = 50
-        play_round = patch('blackjack_game.BlackjackApp.playRound')
-        input_patch = patch('builtins.input', side_effect=['start', 'exit'])
-        input_patch.start()
-        play_round.start()
+        play_round = self.get_patch('blackjack_game.BlackjackApp.playRound')
+        input_patch = self.get_patch('builtins.input', side_effect=['start', 'exit'])
         with patch('blackjack_interface.TextInterface.getBet', return_value=test_bet) as get_bet:
             with patch('blackjack_game.BlackjackApp.setBet') as set_bet:
                 self.app.runGame()
                 get_bet.assert_called_once()
                 set_bet.assert_called_once()
-        input_patch.stop()
-        play_round.stop()
 
     def test_custom_bets_multiple_rounds(self):
         """
         Test that different custom bets can be set for each round
         """
         test_bets = [10, 25, 50, 100]
-        play_round = patch('blackjack_game.BlackjackApp.playRound')
-        input_patch = patch('builtins.input', side_effect=['start'] * 4 + ['exit'])
-        input_patch.start()
-        play_round.start()
+        play_round = self.get_patch('blackjack_game.BlackjackApp.playRound')
+        input_patch = self.get_patch('builtins.input', side_effect=['start'] * 4 + ['exit'])
         with patch('blackjack_interface.TextInterface.getBet', side_effect=test_bets) as get_bet:
             with patch('blackjack_game.BlackjackApp.setBet') as set_bet:
                 self.app.runGame()
@@ -1244,50 +1315,38 @@ class TestBlackjackAppRunGame(unittest.TestCase):
                 self.assertEqual(set_bet.call_count, 4)
                 bet_args = [bet_arg[0][0] for bet_arg in set_bet.call_args_list]
                 self.assertListEqual(test_bets, bet_args)
-        input_patch.stop()
-        play_round.stop()
 
     def test_cards_reset_after_round(self):
         """
         Test that cards reset (empty) each round
         """
-        play_round = patch('blackjack_game.BlackjackApp.playRound')
-        input_patch = patch('builtins.input', side_effect=['start', 10, 'start', 25, 'exit'])
-        input_patch.start()
-        play_round.start()
+        play_round = self.get_patch('blackjack_game.BlackjackApp.playRound')
+        input_patch = self.get_patch('builtins.input', side_effect=['start', 10, 'start', 25, 'exit'])
         with patch('blackjack_game.BlackjackApp.resetCards') as reset_cards:
             self.app.runGame()
             reset_cards.assert_called()
             self.assertEqual(reset_cards.call_count, 2)
-        input_patch.stop()
-        play_round.stop()
         
     def test_balance_valid_can_play(self):
         """
         Test that a game can be played with a sufficient balance
         """
-        get_bet = patch('blackjack_interface.TextInterface.getBet', return_value=25)
-        input_patch = patch('builtins.input', side_effect=['start', 'exit'])
-        input_patch.start()
-        get_bet.start()
+        get_bet = self.get_patch('blackjack_interface.TextInterface.getBet', return_value=25)
+        input_patch = self.get_patch('builtins.input', side_effect=['start', 'exit'])
         with patch('blackjack_game.BlackjackApp.playRound') as play_round:
             self.app.runGame()
             play_round.assert_called_once()
-        input_patch.stop()
-        get_bet.stop()
 
     def test_balance_insufficient_cannot_play(self):
         """
         Test that a game cannot be played with an insufficient balance
         """
         self.app.balance = 50
-        input_patch = patch('builtins.input', side_effect=['start', 100, 25, 'exit'])
-        input_patch.start()
+        input_patch = self.get_patch('builtins.input', side_effect=['start', 100, 25, 'exit'])
         with patch('blackjack_game.BlackjackApp.playRound') as play_round:
             self.app.runGame()
             play_round.assert_called_once()
             self.assertEqual(self.app.bet, 25)
-        input_patch.stop()
     
     def test_balance_low_can_play_limited_rounds(self):
         """
@@ -1295,16 +1354,12 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         """
         def lose_bet():
             self.app.balance = self.app.balance - 10
-        input_patch = patch('builtins.input', side_effect=['start'] * 11 + ['exit'])
-        input_patch.start()
-        get_bet = patch('blackjack_interface.TextInterface.getBet', return_value=10)
-        get_bet.start()
+        input_patch = self.get_patch('builtins.input', side_effect=['start'] * 11 + ['exit'])
+        get_bet = self.get_patch('blackjack_interface.TextInterface.getBet', return_value=10)
         with patch('blackjack_game.BlackjackApp.playRound', side_effect=lose_bet) as play_round:
             self.app.runGame()
             play_round.assert_called()
             self.assertEqual(play_round.call_count, 10)
-        get_bet.stop()
-        input_patch.stop()
 
 if __name__ == '__main__':
 
