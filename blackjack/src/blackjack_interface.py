@@ -84,6 +84,9 @@ class TextInterface(object):
     def showOutcomeMessage(self, outcome):
         print(outcome)
 
+    def updateBalanceDisplay(self, balance):
+        print('Your balance: ', balance)
+
     def updateCardView(self, hand: BlackjackCardSet, is_dealer=False):
         whose = "Dealer's" if is_dealer else "Your"
         title = (whose + " cards:").center(self.MARGIN)
