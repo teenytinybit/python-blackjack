@@ -80,6 +80,7 @@ class BlackjackApp(object):
             'tie':tie_msg
         }
         self.placeBet(0)
+        self.interface.updateBalanceDisplay(self.balance)
         # deal 2 initial cards for both
         for i in range(2):
             self.player_hand[0].addCard(self.drawCard())
@@ -118,7 +119,6 @@ class BlackjackApp(object):
             self.dealer_hand.revealCard(hidden_idx)
             self.interface.updateCardView(self.dealer_hand, is_dealer=True)
             self.interface.showOutcomeMessage("Dealer's got Blackjack! " + messages[Outcome.LOSS.value])
-            self.adjustBalance(Outcome.LOSS, 0)
             return
 
         # allow splitting 2 same value cards, up to 4 hands allowed
@@ -137,19 +137,18 @@ class BlackjackApp(object):
                     self.player_hand.append(self.player_hand[i].doSplit())
                     self.bets.append(self.bet)
                     self.placeBet(i)
+                    self.interface.updateBalanceDisplay(self.balance)
                 self.player_hand[i].addCard(self.drawCard())
                 self.interface.updateCardView(self.player_hand[i])
                 self.playHand(self.player_hand[i])
                 valid_hands.append(self.isSuccessful(self.player_hand[i]))
                 if valid_hands[-1] == False:
                     self.interface.showOutcomeMessage("Bust!\n")
-                    self.adjustBalance(Outcome.LOSS, i)
             else:
                 self.playHand(self.player_hand[i])
                 valid_hands.append(self.isSuccessful(self.player_hand[i]))
                 if valid_hands[-1] == False:
                     self.interface.showOutcomeMessage("Bust!\n")
-                    self.adjustBalance(Outcome.LOSS, i)
                 break
         not_bust_indices = [i for i in range(len(valid_hands)) if valid_hands[i]]
 
@@ -164,6 +163,7 @@ class BlackjackApp(object):
             self.interface.showOutcomeMessage("Dealer bust! " + messages[Outcome.WIN.value])
             for i in not_bust_indices:
                 self.adjustBalance(Outcome.WIN, i)
+                self.interface.updateBalanceDisplay(self.balance)
             return
 
         # compare results to player
@@ -173,14 +173,14 @@ class BlackjackApp(object):
             outcome = None
             if player_high == dealer_high:
                 outcome = Outcome.TIE
-            # elif player_high == BLACKJACK:
-            #     outcome = Outcome.BLACKJACK
             elif player_high > dealer_high:
                 outcome = Outcome.WIN
             else:
                 outcome = Outcome.LOSS
             self.interface.showOutcomeMessage(messages[outcome.value])
             self.adjustBalance(outcome, v)
+            if not outcome == Outcome.LOSS:
+                self.interface.updateBalanceDisplay(self.balance)
 
     def resetCards(self):
         self.player_hand = [BlackjackCardSet()]
@@ -189,14 +189,15 @@ class BlackjackApp(object):
     def runGame(self):
         # welcome message
         self.interface.greet()
-
-        # start round or exit game    
+        self.interface.updateBalanceDisplay(self.balance)
+        # start round or exit game
         while self.balance >= 10 and self.interface.wantsToPlay():
             self.setBet(self.interface.getBet(self.balance))
             self.interface.initializeView()
             self.playRound()
             self.resetCards()
             self.interface.clear()
+            self.interface.updateBalanceDisplay(self.balance)
 
         self.interface.close()
     
