@@ -363,6 +363,13 @@ class TestTextInterface(unittest.TestCase):
             actual_bet = self.inter.getBet(30)
             self.assertEqual(25, actual_bet)
 
+    def test_show_balance(self):
+        """
+        Test that a balance display is shown
+        """
+        with patch('builtins.print') as print_patch:
+            self.inter.updateBalanceDisplay(1000)
+            print_patch.assert_called_with('Your balance: ', 1000)
 
 class TestGraphicInterface(unittest.TestCase):
 
