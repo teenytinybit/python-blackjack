@@ -1377,8 +1377,6 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
                 self.app.playRound()
                 # dealer scores 13, user scores 19 (and 17) on all card sets, win message x4 times
-                outcome_mock.assert_called_with(self.win_msg)
-                # TODO: implement calls checks
                 outcome_mock.assert_has_calls([call(self.win_msg)] * 4)
                 balance_displ.assert_has_calls([
                     call(90), call(80), call(70), call(60), 
