@@ -544,7 +544,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_once_with(self.blackjack_msg)
         
@@ -578,7 +578,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_once_with(self.tie_msg)
 
@@ -614,7 +614,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_once_with("Dealer's got Blackjack! " + self.loss_msg)
 
@@ -654,7 +654,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_has_calls([call(self.bust_msg)], call(self.loss_msg))
                 balance_displ.assert_called_once_with(90)
         
@@ -698,7 +698,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_has_calls([call(90), call(100)])
                 outcome_mock.assert_called_with(self.tie_msg)
         
@@ -740,7 +740,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_called_once_with(90)
                 outcome_mock.assert_called_with(self.loss_msg)
 
@@ -786,7 +786,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_has_calls([call(90), call(110)])
                 outcome_mock.assert_called_with(self.win_msg)
 
@@ -832,7 +832,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_has_calls([call(90), call(110)])
                 outcome_mock.assert_called_with(self.win_msg)
 
@@ -873,7 +873,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         input_mock.side_effect = ['split'] + ['stand']
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
-            self.app.playRound()
+            self.app.startRound()
             balance_displ.assert_has_calls([call(90), call(110)])
         self.assertEqual(len(self.app.player_hand), 1, msg="Player must have one card set")
         
@@ -909,7 +909,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         input_mock.side_effect = ['split'] + ['stand'] * 2
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
-            self.app.playRound()
+            self.app.startRound()
             balance_displ.assert_has_calls([call(90), call(80), call(100), call(120)])
         self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets")
         
@@ -953,7 +953,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         self.app.setBet(100)
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
-            self.app.playRound()
+            self.app.startRound()
             balance_displ.assert_has_calls([call(0), call(200)])
 
         self.assertEqual(self.app.balance, 200)
@@ -994,7 +994,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_has_calls([call(90), call(80)])
                 outcome_mock.assert_called_with(self.loss_msg)
         
@@ -1034,7 +1034,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 balance_displ.assert_has_calls([call(90), call(110)])
                 outcome_mock.assert_called_with(self.win_msg)
         
@@ -1074,7 +1074,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_called_once_with(self.win_msg)       
                 balance_displ.assert_has_calls([call(90), call(80), call(120)])
                 self.assertEqual(balance_displ.call_count, 3)
@@ -1120,7 +1120,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_has_calls([call(self.loss_msg)] * 2)           
                 balance_displ.assert_has_calls([call(90), call(80)])
                 self.assertEqual(balance_displ.call_count, 2)
@@ -1168,7 +1168,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_has_calls([call(self.bust_msg)] * 2, call(self.loss_msg))
                 balance_displ.assert_has_calls([call(90), call(80)])
                 self.assertEqual(balance_displ.call_count, 2)
@@ -1215,7 +1215,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_has_calls([call(self.loss_msg)] * 2)           
                 balance_displ.assert_has_calls([call(90), call(80)])
                 self.assertEqual(balance_displ.call_count, 2)
@@ -1263,7 +1263,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_called_once_with(self.loss_msg)           
                 balance_displ.assert_called_once_with(90)
 
@@ -1316,7 +1316,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         input_mock.side_effect = ['split', 'hit', 'stand'] * 4      # attempt to split to more than max (4) hands
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 # dealer scores 19, user scores 13 on all card sets, loss message x4 times
                 outcome_mock.assert_has_calls([call(self.loss_msg)] * 4)
                 balance_displ.assert_has_calls([call(90), call(80), call(70), call(60)])
@@ -1375,7 +1375,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         input_mock.side_effect = ['split', 'hit', 'stand'] * 4      # attempt to split to more than max (4) hands
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 # dealer scores 13, user scores 19 (and 17) on all card sets, win message x4 times
                 outcome_mock.assert_has_calls([call(self.win_msg)] * 4)
                 balance_displ.assert_has_calls([
@@ -1430,7 +1430,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_has_calls([call(self.bust_msg)], call(self.win_msg))
                 balance_displ.assert_has_calls([call(90), call(80), call(100)])
                 self.assertEqual(balance_displ.call_count, 3)
@@ -1481,7 +1481,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
             with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
-                self.app.playRound()
+                self.app.startRound()
                 outcome_mock.assert_has_calls([call(self.win_msg)], call(self.loss_msg))
                 balance_displ.assert_has_calls([call(90), call(80), call(100)])
                 self.assertEqual(balance_displ.call_count, 3)

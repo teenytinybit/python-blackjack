@@ -87,8 +87,7 @@ class BlackjackApp(object):
     def placeBet(self, hand: int):
         self.balance = self.balance - self.bets[hand]
 
-    # TODO: rename to startRound()
-    def playRound(self):
+    def startRound(self):
         hidden_idx = 0
         tie_msg, win_msg, loss_msg = "It's a tie!\n", "You won!\n", "You lost!\n"
         messages = {
@@ -195,7 +194,7 @@ class BlackjackApp(object):
         while self.balance >= 10 and self.interface.wantsToPlay():
             self.setBet(self.interface.getBet(self.balance))
             self.interface.initializeView()
-            self.playRound()
+            self.startRound()
             self.resetCards()
             self.interface.clear()
             self.interface.updateBalanceDisplay(self.balance)
