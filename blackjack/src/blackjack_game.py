@@ -55,7 +55,7 @@ class BlackjackApp(object):
         action = Actions.HIT
         while self.canPlay(hand, is_dealer):
             if not is_dealer:
-                action = self.interface.getAction(Actions.HIT, Actions.STAND)
+                action = self.interface.getAction([Actions.HIT, Actions.STAND])
             if action == Actions.HIT:
                 hand.addCard(self.drawCard())
                 self.interface.updateCardView(hand, is_dealer=is_dealer)
@@ -90,10 +90,10 @@ class BlackjackApp(object):
 
         """
         TEST CODE =========================
-        """
+        # """
         # self.player_hand = [BlackjackCardSet()]
-        # self.player_hand[0].addCard(Card('hearts', 'nine'))
-        # self.player_hand[0].addCard(Card('spades', 'nine'))
+        # self.player_hand[0].addCard(Card('hearts', 'six'))
+        # self.player_hand[0].addCard(Card('spades', 'six'))
         """
         TEST CODE =========================
         """
@@ -129,9 +129,23 @@ class BlackjackApp(object):
                 self.player_hand[i].addCard(self.drawCard())
                 self.interface.updateCardView(self.player_hand[i])
             if i < MAX_HANDS - 1 and self.player_hand[i].canSplit() and self.balance >= self.bet:
-                action = self.interface.getAction(Actions.HIT, Actions.STAND, Actions.SPLIT)
+                actions_opt = [Actions.HIT, Actions.STAND, Actions.SPLIT]
+                if i == 0:
+                    actions_opt.append(Actions.DOUBLE)
+                
+                action = self.interface.getAction(actions_opt)
                 if action == Actions.STAND:
                     valid_hands.append(self.isSuccessful(self.player_hand[i]))
+                    break
+                if action == Actions.DOUBLE:
+                    self.placeBet(i)
+                    self.bets[i] = self.bet * 2
+                    self.interface.updateBalanceDisplay(self.balance)
+                    self.player_hand[i].addCard(self.drawCard())
+                    self.interface.updateCardView(self.player_hand[i])
+                    valid_hands.append(self.isSuccessful(self.player_hand[i]))
+                    if valid_hands[-1] == False:
+                        self.interface.showOutcomeMessage("Bust!\n")
                     break
                 if action == Actions.SPLIT:
                     self.player_hand.append(self.player_hand[i].doSplit())
@@ -144,6 +158,30 @@ class BlackjackApp(object):
                 valid_hands.append(self.isSuccessful(self.player_hand[i]))
                 if valid_hands[-1] == False:
                     self.interface.showOutcomeMessage("Bust!\n")
+                if action == Actions.HIT:
+                    break
+            elif i == 0:
+                action = self.interface.getAction([Actions.HIT, Actions.STAND, Actions.DOUBLE])
+                if action == Actions.STAND:
+                    valid_hands.append(self.isSuccessful(self.player_hand[i]))
+                    break
+                if action == Actions.DOUBLE:
+                    self.placeBet(i)
+                    self.bets[i] = self.bet * 2
+                    self.interface.updateBalanceDisplay(self.balance)
+                    self.player_hand[i].addCard(self.drawCard())
+                    self.interface.updateCardView(self.player_hand[i])
+                    valid_hands.append(self.isSuccessful(self.player_hand[i]))
+                    if valid_hands[-1] == False:
+                        self.interface.showOutcomeMessage("Bust!\n")
+                    break
+                self.player_hand[i].addCard(self.drawCard())
+                self.interface.updateCardView(self.player_hand[i])
+                self.playHand(self.player_hand[i])
+                valid_hands.append(self.isSuccessful(self.player_hand[i]))
+                if valid_hands[-1] == False:
+                    self.interface.showOutcomeMessage("Bust!\n")
+                break
             else:
                 self.playHand(self.player_hand[i])
                 valid_hands.append(self.isSuccessful(self.player_hand[i]))

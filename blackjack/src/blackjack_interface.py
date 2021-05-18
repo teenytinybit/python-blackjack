@@ -47,7 +47,7 @@ class TextInterface(object):
         self._addBorder()
         print("")
 
-    def getAction(self, *actions):
+    def getAction(self, actions):
         btn_options = [f"'{a.value}'" for a in actions]
         action_msg = ""
         if Actions.SPLIT in actions:

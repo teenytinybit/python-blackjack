@@ -250,7 +250,7 @@ class TestTextInterface(unittest.TestCase):
         action = Actions.SPLIT
         other_actions = [a.value for a in Actions if a != action]
         with patch('builtins.input', side_effect=other_actions + [action.value]) as input_patch:
-            self.inter.getAction(action)
+            self.inter.getAction([action])
             input_patch.assert_called()
             self.assertEqual(input_patch.call_count, 4)
             printed_args = [cl[0][0] for cl in input_patch.call_args_list if action.value in cl[0][0]]
@@ -265,7 +265,7 @@ class TestTextInterface(unittest.TestCase):
         """
         return_vals = [Actions.DOUBLE.value, Actions.SPLIT.value, Actions.STAND.value]
         with patch('builtins.input', side_effect=return_vals) as input_patch:
-            self.inter.getAction(Actions.STAND, Actions.HIT)
+            self.inter.getAction([Actions.STAND, Actions.HIT])
             input_patch.assert_called()
             self.assertEqual(input_patch.call_count, 3)
             printed_args = [cl[0][0] for cl in input_patch.call_args_list]
@@ -279,17 +279,18 @@ class TestTextInterface(unittest.TestCase):
         - correct message is displayed
         - input is correctly processed
         """
-        with patch('builtins.input', side_effect=[Actions.HIT.value]) as input_patch:
-            self.inter.getAction(Actions.STAND, Actions.HIT, Actions.SPLIT, Actions.DOUBLE)
-            input_patch.assert_called()
-            self.assertEqual(input_patch.call_count, 1)
-            printed_args = [cl[0][0] for cl in input_patch.call_args_list]
-            opt = [(
-                Actions.STAND.value in arg \
-                and Actions.HIT.value in arg \
-                and Actions.DOUBLE.value in arg \
-                and Actions.SPLIT.value in arg) for arg in printed_args]
-            self.assertTrue(any(opt))
+        return_vals = [Actions.STAND, Actions.HIT, Actions.SPLIT, Actions.DOUBLE]
+        for i in range(4):
+            with patch('builtins.input', side_effect=[return_vals[i].value]) as input_patch:
+                self.inter.getAction(return_vals)
+                input_patch.assert_called_once()
+                printed_args = [cl[0][0] for cl in input_patch.call_args_list]
+                opt = [(
+                    Actions.STAND.value in arg \
+                    and Actions.HIT.value in arg \
+                    and Actions.DOUBLE.value in arg \
+                    and Actions.SPLIT.value in arg) for arg in printed_args]
+                self.assertTrue(any(opt))
 
     def test_get_action_double(self):
         """
@@ -301,7 +302,7 @@ class TestTextInterface(unittest.TestCase):
         action = Actions.DOUBLE
         other_actions = [a.value for a in Actions if a != action]
         with patch('builtins.input', side_effect=other_actions + [action.value]) as input_patch:
-            self.inter.getAction(action)
+            self.inter.getAction([action])
             input_patch.assert_called()
             self.assertEqual(input_patch.call_count, 4)
             printed_args = [cl[0][0] for cl in input_patch.call_args_list if action.value in cl[0][0]]

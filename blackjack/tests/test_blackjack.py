@@ -92,6 +92,9 @@ class TestBlackjackAppBets(TestBlackjackBaseClass):
         self.assertListEqual(self.app.bets, [20])
 
     def test_place_bet(self):
+        """
+        Test that a when a bet is placed, the balance is adjusted correctly
+        """
         self.app.setBet(30)
         self.app.placeBet(0)
         self.assertEqual(self.app.balance, 70)
@@ -664,7 +667,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
         self.assertEqual(self.app.balance, 90)
-        
+
     @patch('builtins.input')
     def test_game_flow_user_dealer_tie(self, input_mock):
         """
@@ -843,6 +846,7 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
 
         self.assertEqual(self.app.balance, 110)
 
+    @skip("Same value cards can be split in this version of the game")
     @patch('builtins.input')
     def test_split_flow_no_split_diff_rank_same_value(self, input_mock):
         """
@@ -878,6 +882,48 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         self.assertEqual(player_expected_cards, self.app.player_hand[0])
 
         self.assertEqual(self.app.balance, 110)
+
+    @patch('builtins.input')
+    def test_split_flow_split_diff_rank_same_value(self, input_mock):
+        """
+        Test that same value different rank cards can be split (eg., jack and queen, value 10)
+        - user has 2 card sets
+        - user final cards match the pre-defined cards (expected score)
+        """
+        PREDEFINED_VALUES = [
+            self.cards['jack'],  # user card
+            self.cards['three'],
+            self.cards['queen'],  # user card
+            self.cards['four']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        suit, rank = self.cards['nine'].getSuit(), self.cards['nine'].getRank()
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return CardClass(suit, rank)
+
+        input_mock.side_effect = ['split'] + ['stand'] * 2
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            self.app.playRound()
+            balance_displ.assert_has_calls([call(90), call(80), call(100), call(120)])
+        self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets")
+        
+        player_expected_cards = CardSetClass()
+        player_expected_cards.addCard(DRAWN_CARDS[0])
+        player_expected_cards.addCard(CardClass(suit, rank))
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+
+        player_expected_cards2 = CardSetClass()
+        player_expected_cards2.addCard(DRAWN_CARDS[2])
+        player_expected_cards2.addCard(CardClass(suit, rank))
+        self.assertEqual(player_expected_cards2, self.app.player_hand[1])
+
+        self.assertEqual(self.app.balance, 120)
 
     @patch('builtins.input')
     def test_split_flow_no_split_low_balance(self, input_mock):
@@ -916,6 +962,181 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         player_expected_cards = CardSetClass()
         for ec in DRAWN_CARDS[::2]: player_expected_cards.addCard(ec)
         self.assertEqual(player_expected_cards, self.app.player_hand[0])
+
+    @patch('builtins.input')
+    def test_game_flow_user_double_bet_2_cards(self, input_mock):
+        """
+        Test that the game flow is correct when a user doubles a bet
+        - correct expected final balance
+        - correct message(s) displayed
+        - user cards match the pre-defined cards (expected score)
+        """
+
+        # starting score of 6 for both
+        PREDEFINED_VALUES = [
+            self.cards['two'],  # user card
+            self.cards['two'],
+            self.cards['four'],  # user card
+            self.cards['three']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        suit, rank = self.cards['six'].getSuit(), self.cards['six'].getRank()
+
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return CardClass(suit, rank)
+
+        input_mock.side_effect = ['double', 'hit', 'hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
+                self.app.playRound()
+                balance_displ.assert_has_calls([call(90), call(80)])
+                outcome_mock.assert_called_with(self.loss_msg)
+        
+        expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)]: expected_cards.addCard(ec)
+        self.assertEqual(expected_cards, self.app.player_hand[0])
+        self.assertEqual(len(self.app.player_hand), 1)
+
+        self.assertEqual(self.app.balance, 80)
+
+    @patch('builtins.input')    
+    def test_game_flow_user_double_bet_too_many_cards(self, input_mock):
+        """
+        Test that a bet cannot be doubled when more than 2 cards present
+        - correct expected final balance
+        - correct message(s) displayed
+        - userfinal cards match the pre-defined cards (expected score)
+        """
+
+        PREDEFINED_VALUES = [
+            self.cards['two'],  # user card
+            self.cards['two'],
+            self.cards['four'],  # user card
+            self.cards['three']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+        suit, rank = self.cards['six'].getSuit(), self.cards['six'].getRank()
+
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return CardClass(suit, rank)
+
+        input_mock.side_effect = ['hit', 'double', 'hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
+                self.app.playRound()
+                balance_displ.assert_has_calls([call(90), call(110)])
+                outcome_mock.assert_called_with(self.win_msg)
+        
+        expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)] * 2: expected_cards.addCard(ec)
+        self.assertEqual(expected_cards, self.app.player_hand[0])
+        self.assertEqual(len(self.app.player_hand), 1)
+        
+        self.assertEqual(self.app.balance, 110)
+
+    @patch('builtins.input')    
+    def test_split_flow_no_split_after_double_bet(self, input_mock):
+        """
+        Test that cards cannot be split when a user doubles a bet
+        - correct expected final balance
+        - correct message(s) displayed
+        - user and dealer final cards match the pre-defined cards (expected score)
+        """
+        PREDEFINED_VALUES = [
+            self.cards['five'],  # user card
+            self.cards['seven'],
+            self.cards['five'],  # user card
+            self.cards['two']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        suit, rank = self.cards['eight'].getSuit(), self.cards['eight'].getRank()
+
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return CardClass(suit, rank)
+
+        input_mock.side_effect = ['double', 'split']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
+                self.app.playRound()
+                outcome_mock.assert_called_once_with(self.win_msg)       
+                balance_displ.assert_has_calls([call(90), call(80), call(120)])
+                self.assertEqual(balance_displ.call_count, 3)
+
+        self.assertEqual(len(self.app.player_hand), 1, msg="Player must have only 1 card set if bet was doubled")
+        
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)]: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)]: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
+        self.assertEqual(self.app.balance, 120)
+
+    @patch('builtins.input')    
+    def test_split_flow_split_no_double_bet_after(self, input_mock):
+        """
+        Test that a bet cannot be doubled when cards have been split at least once
+        - correct expected final balance
+        - correct message(s) displayed
+        - user and dealer final cards match the pre-defined cards (expected score)
+        """
+        PREDEFINED_VALUES = [
+            self.cards['five'],  # user card
+            self.cards['three'],
+            self.cards['five'],  # user card
+            self.cards['four']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        suit, rank = self.cards['seven'].getSuit(), self.cards['seven'].getRank()
+
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return CardClass(suit, rank)
+
+        input_mock.side_effect = ['split'] + ['double', 'stand'] * 2
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
+                self.app.playRound()
+                outcome_mock.assert_has_calls([call(self.loss_msg)] * 2)           
+                balance_displ.assert_has_calls([call(90), call(80)])
+                self.assertEqual(balance_displ.call_count, 2)
+
+        self.assertEqual(len(self.app.player_hand), 2, msg="Player must have two card sets if split once")
+        
+        player_expected_cards = CardSetClass()
+        for ec in [DRAWN_CARDS[0], CardClass(suit, rank)]: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        self.assertEqual(player_expected_cards, self.app.player_hand[1])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)] * 2: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
+        self.assertEqual(self.app.balance, 80)
         
     @patch('builtins.input')
     def test_split_flow_user_bust_all(self, input_mock):
@@ -1011,6 +1232,52 @@ class TestBlackjackAppPlayFullRound(TestBlackjackBaseClass):
         self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
 
         self.assertEqual(self.app.balance, 80)
+
+    @patch('builtins.input')
+    def test_split_flow_hit_instead_of_split(self, input_mock):
+        """
+        Test that the game flow is correct when cards can be split but user chooses not to
+        - correct message(s) displayed for the expected outcome
+        - user has 1 card set
+        - user final cards match the pre-defined cards (expected score)
+        - dealer final cards match the pre-defined cards (expected score)
+        """
+        PREDEFINED_VALUES = [
+            self.cards['five'],  # user card
+            self.cards['three'],
+            self.cards['five'],  # user card
+            self.cards['four']
+        ]
+        DRAWN_CARDS = deepcopy(PREDEFINED_VALUES)
+
+        suit, rank = self.cards['seven'].getSuit(), self.cards['seven'].getRank()
+
+        def side_effect():
+            if len(PREDEFINED_VALUES) > 0:
+                card_ref = PREDEFINED_VALUES.pop(0)
+                value = deepcopy(card_ref)
+                return value
+            return CardClass(suit, rank)
+
+        input_mock.side_effect = ['hit', 'stand']
+        balance_displ = self.get_patch('blackjack_interface.TextInterface.updateBalanceDisplay')
+        with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
+            with patch('blackjack_interface.TextInterface.showOutcomeMessage') as outcome_mock:
+                self.app.playRound()
+                outcome_mock.assert_called_once_with(self.loss_msg)           
+                balance_displ.assert_called_once_with(90)
+
+        self.assertEqual(len(self.app.player_hand), 1, msg="Player must have one card set if did not split")
+        
+        player_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[::2] + [CardClass(suit, rank)]: player_expected_cards.addCard(ec)
+        self.assertEqual(player_expected_cards, self.app.player_hand[0])
+        
+        dealer_expected_cards = CardSetClass()
+        for ec in DRAWN_CARDS[1::2] + [CardClass(suit, rank)] * 2: dealer_expected_cards.addCard(ec)
+        self.assertEqual(dealer_expected_cards, self.app.dealer_hand)
+
+        self.assertEqual(self.app.balance, 90)
 
     @patch('builtins.input')
     def test_split_flow_max_times_loss(self, input_mock):
