@@ -60,7 +60,7 @@ class BlackjackCardSet(object):
 
     def canSplit(self):
         if len(self.cards) == 2 and not self.no_split:
-            return self.cards[0].getRank() == self.cards[1].getRank()
+            return self.cards[0].getValue() == self.cards[1].getValue()
         return False
 
     def doSplit(self):
@@ -117,7 +117,7 @@ class BlackjackCardSet(object):
         if self.has_ace:
             full_score[high] = full_score[low] + 10
         self.score = visible_score
-        self.blackjack = 21 in full_score
+        self.blackjack = 21 in full_score and len(self.cards) == 2
 
     def __str__(self):
         cards_str = ""

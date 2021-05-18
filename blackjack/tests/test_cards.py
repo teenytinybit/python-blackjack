@@ -1,4 +1,5 @@
 import sys
+from unittest.case import skip
 from env import dev_path
 sys.path.append(dev_path)
 
@@ -138,9 +139,9 @@ class TestCardSetClassMethods(unittest.TestCase):
             self.assertEqual(cardset.getCard(i), test_cards[i])
         self.assertFalse(any([cardset.canSplit(), cardset.isSplitFromAce(), cardset.hasBlackjack()]))
 
-    def test_add_cards_blackjack(self):
+    def test_add_cards_21_not_blackjack(self):
         """
-        Test that when added cards with a total score of 21 are recognised as a blackjack
+        Test that when added cards with a total score of 21 are NOT recognised as a blackjack
         """
         test_cards = [
             Card(SUITS[1], 'ten'),
@@ -150,11 +151,29 @@ class TestCardSetClassMethods(unittest.TestCase):
         cardset = BlackjackCardSet()
         for tc in test_cards: cardset.addCard(tc)
         
-        self.assertTrue(cardset.hasBlackjack())
+        self.assertFalse(cardset.hasBlackjack())
         self.assertEqual(len(cardset.getCards()), len(test_cards))
         for i in range(len(test_cards)):
             self.assertEqual(cardset.getCard(i), test_cards[i])
         self.assertFalse(any([cardset.canSplit(), cardset.isSplitFromAce(), cardset.hasAce()]))
+
+    def test_add_cards_21_blackjack(self):
+        """
+        Test that when two cards with a total score of 21 are recognised as a blackjack
+        """
+        test_cards = [
+            Card(SUITS[1], 'ten'),
+            Card(SUITS[2], 'ace')
+        ]
+        cardset = BlackjackCardSet()
+        for tc in test_cards: cardset.addCard(tc)
+        
+        self.assertTrue(cardset.hasBlackjack())
+        self.assertTrue( cardset.hasAce())
+        self.assertEqual(len(cardset.getCards()), len(test_cards))
+        for i in range(len(test_cards)):
+            self.assertEqual(cardset.getCard(i), test_cards[i])
+        self.assertFalse(any([cardset.canSplit(), cardset.isSplitFromAce()]))
 
     def test_can_split(self):
         """
@@ -168,6 +187,19 @@ class TestCardSetClassMethods(unittest.TestCase):
         for tc in test_cards: cardset.addCard(tc)
         self.assertTrue(cardset.canSplit())
 
+    def test_can_split_diff_rank_same_val(self):
+        """
+        Test that cards can be split when same value different ranked cards present
+        """
+        test_cards = [
+            Card(SUITS[1], 'ten'),  #value = 10
+            Card(SUITS[2], 'jack')  #value = 10
+        ]
+        cardset = BlackjackCardSet()
+        for tc in test_cards: cardset.addCard(tc)
+        self.assertTrue(cardset.canSplit())
+
+    @skip("Same value cards can be split in this version of the game")
     def test_cannot_split_diff_rank_same_val(self):
         """
         Test that cards cannot be split when same value different ranked cards present
