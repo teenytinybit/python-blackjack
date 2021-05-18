@@ -346,12 +346,12 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control = CardSetClass()
         cards_control.addCard(deepcopy(self.cards['five']))
         cards_control.addCard(deepcopy(self.cards['four']))
-        cards_test = deepcopy(cards_control)
+        self.app.player_hand[0] = deepcopy(cards_control)
 
         with patch('builtins.input', return_value='stand') as input_mock:
-            self.app.playHand(cards_test)
+            self.app.playHand(0, actions=[Actions.HIT, Actions.STAND])
             input_mock.assert_called_once()
-        self.assertEqual(cards_test, cards_control)
+        self.assertEqual(self.app.player_hand[0], cards_control)
 
     def test_user_plays_turn_invalid_hand(self):
         """
@@ -361,12 +361,12 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control.addCard(deepcopy(self.cards['ten']))
         cards_control.addCard(deepcopy(self.cards['ten']))
         cards_control.addCard(deepcopy(self.cards['six']))
-        cards_test = deepcopy(cards_control)
+        self.app.player_hand[0] = deepcopy(cards_control)
 
         with patch('builtins.input') as input_mock:
-            self.app.playHand(cards_test)
+            self.app.playHand(0, actions=[Actions.HIT, Actions.STAND])
             input_mock.assert_not_called()
-        self.assertEqual(cards_test, cards_control)
+        self.assertEqual(self.app.player_hand[0], cards_control)
 
     def test_user_plays_turn_valid_hand_hit_once(self):
         """
@@ -376,13 +376,13 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control = CardSetClass()
         cards_control.addCard(deepcopy(self.cards['five']))
         cards_control.addCard(deepcopy(self.cards['four']))
-        cards_test = deepcopy(cards_control)
+        self.app.player_hand[0] = deepcopy(cards_control)
 
         with patch('builtins.input', side_effect=['hit', 'stand']) as input_mock:
-            self.app.playHand(cards_test)
+            self.app.playHand(0, actions=[Actions.HIT, Actions.STAND])
             self.assertEqual(input_mock.call_count, 2, msg="Should make 2 action input prompts")
-        self.assertEqual(len(cards_test.getCards()), 3)
-        self.assertCountEqual(cards_test.getCards()[:2], cards_control.getCards())
+        self.assertEqual(len(self.app.player_hand[0].getCards()), 3)
+        self.assertCountEqual(self.app.player_hand[0].getCards()[:2], cards_control.getCards())
 
     def test_user_plays_turn_valid_hand_hit_max(self):
         """
@@ -392,7 +392,7 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control = CardSetClass()
         cards_control.addCard(deepcopy(self.cards['ace']))
         cards_control.addCard(deepcopy(self.cards['ace']))
-        cards_test = deepcopy(cards_control)
+        self.app.player_hand[0] = deepcopy(cards_control)
 
         suit, rank = self.cards['two'].getSuit(), self.cards['two'].getRank()
 
@@ -401,10 +401,10 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
 
         with patch('builtins.input', return_value='hit') as input_mock:
             with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
-                self.app.playHand(cards_test)
+                self.app.playHand(0, actions=[Actions.HIT, Actions.STAND])
             self.assertEqual(input_mock.call_count, 10, msg="Should make 10 action input prompts")
-        self.assertEqual(len(cards_test.getCards()), 12)
-        self.assertCountEqual(cards_test.getCards()[:2], cards_control.getCards())
+        self.assertEqual(len(self.app.player_hand[0].getCards()), 12)
+        self.assertCountEqual(self.app.player_hand[0].getCards()[:2], cards_control.getCards())
 
     def test_user_plays_turn_valid_hand_multiple_hit(self):
         """
@@ -414,7 +414,7 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control = CardSetClass()
         cards_control.addCard(deepcopy(self.cards['ace']))
         cards_control.addCard(deepcopy(self.cards['two']))
-        cards_test = deepcopy(cards_control)
+        self.app.player_hand[0] = deepcopy(cards_control)
 
         suit, rank = self.cards['three'].getSuit(), self.cards['three'].getRank()
 
@@ -423,10 +423,10 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
 
         with patch('builtins.input', side_effect=['hit'] * 4 + ['stand']) as input_mock:
             with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
-                self.app.playHand(cards_test)
+                self.app.playHand(0, actions=[Actions.HIT, Actions.STAND])
             self.assertEqual(input_mock.call_count, 5, msg="Should make 5 action input prompts")
-        self.assertEqual(len(cards_test.getCards()), 6)
-        self.assertCountEqual(cards_test.getCards()[:2], cards_control.getCards())
+        self.assertEqual(len(self.app.player_hand[0].getCards()), 6)
+        self.assertCountEqual(self.app.player_hand[0].getCards()[:2], cards_control.getCards())
 
     def test_dealer_plays_turn_valid_hand(self):
         """
@@ -436,9 +436,9 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control = CardSetClass()
         cards_control.addCard(deepcopy(self.cards['eight']))
         cards_control.addCard(deepcopy(self.cards['nine']))
-        cards_test = deepcopy(cards_control)
-        self.app.playHand(cards_test, is_dealer=True)
-        self.assertEqual(cards_test, cards_control)
+        self.app.dealer_hand = deepcopy(cards_control)
+        self.app.playHand(None, is_dealer=True)
+        self.assertEqual(self.app.dealer_hand, cards_control)
 
     def test_dealer_plays_turn_invalid_hand(self):
         """
@@ -448,9 +448,9 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control.addCard(deepcopy(self.cards['ten']))
         cards_control.addCard(deepcopy(self.cards['ten']))
         cards_control.addCard(deepcopy(self.cards['six']))
-        cards_test = deepcopy(cards_control)
-        self.app.playHand(cards_test, is_dealer=True)
-        self.assertEqual(cards_test, cards_control)
+        self.app.dealer_hand = deepcopy(cards_control)
+        self.app.playHand(None, is_dealer=True)
+        self.assertEqual(self.app.dealer_hand, cards_control)
 
     def test_dealer_plays_turn_valid_hand_hit_once(self):
         """
@@ -460,7 +460,7 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control = CardSetClass()
         cards_control.addCard(deepcopy(self.cards['three']))
         cards_control.addCard(deepcopy(self.cards['four']))
-        cards_test = deepcopy(cards_control)
+        self.app.dealer_hand = deepcopy(cards_control)
 
         suit, rank = self.cards['jack'].getSuit(), self.cards['jack'].getRank()
 
@@ -468,9 +468,9 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
-            self.app.playHand(cards_test, is_dealer=True)
-        self.assertEqual(len(cards_test.getCards()), 3)
-        self.assertCountEqual(cards_test.getCards()[:2], cards_control.getCards())
+            self.app.playHand(None, is_dealer=True)
+        self.assertEqual(len(self.app.dealer_hand.getCards()), 3)
+        self.assertCountEqual(self.app.dealer_hand.getCards()[:2], cards_control.getCards())
 
     def test_dealer_plays_turn_valid_hand_multiple_hit(self):
         """
@@ -480,7 +480,7 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
         cards_control = CardSetClass()
         cards_control.addCard(deepcopy(self.cards['two']))
         cards_control.addCard(deepcopy(self.cards['two']))
-        cards_test = deepcopy(cards_control)
+        self.app.dealer_hand = deepcopy(cards_control)
 
         suit, rank = self.cards['three'].getSuit(), self.cards['three'].getRank()
 
@@ -488,9 +488,9 @@ class TestBlackjackAppPlaySingleHand(TestBlackjackBaseClass):
             return CardClass(suit, rank)
 
         with patch('blackjack_game.BlackjackApp.drawCard', side_effect=side_effect):
-            self.app.playHand(cards_test, is_dealer=True)
-        self.assertEqual(len(cards_test.getCards()), 7)
-        self.assertCountEqual(cards_test.getCards()[:2], cards_control.getCards())
+            self.app.playHand(None, is_dealer=True)
+        self.assertEqual(len(self.app.dealer_hand.getCards()), 7)
+        self.assertCountEqual(self.app.dealer_hand.getCards()[:2], cards_control.getCards())
 
     @skip
     def test_play_hand_updates_card_view_player(self):
