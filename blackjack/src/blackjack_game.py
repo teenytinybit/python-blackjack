@@ -51,16 +51,33 @@ class BlackjackApp(object):
             return False
         return True
 
-    def playHand(self, hand: BlackjackCardSet, is_dealer=False):
+    def playHand(self, hand_idx, is_dealer=False, actions=[]):
+        hand = self.dealer_hand if is_dealer else self.player_hand[hand_idx]
         action = Actions.HIT
         while self.canPlay(hand, is_dealer):
             if not is_dealer:
-                action = self.interface.getAction([Actions.HIT, Actions.STAND])
+                action = self.interface.getAction(actions)
+            
+            if action == Actions.STAND:
+                break
+            elif action == Actions.DOUBLE:
+                self.placeBet(hand_idx)
+                self.bets[hand_idx] = self.bet * 2
+                self.interface.updateBalanceDisplay(self.balance)
+                hand.addCard(self.drawCard())
+                self.interface.updateCardView(hand, is_dealer=is_dealer)
+                break
+            elif action == Actions.SPLIT:
+                self.player_hand.append(self.player_hand[hand_idx].doSplit())
+                self.bets.append(self.bet)
+                self.placeBet(hand_idx)
+                self.interface.updateBalanceDisplay(self.balance)
+                action = Actions.HIT
+            
             if action == Actions.HIT:
                 hand.addCard(self.drawCard())
                 self.interface.updateCardView(hand, is_dealer=is_dealer)
-            elif action == Actions.STAND:
-                break
+            actions = [Actions.HIT, Actions.STAND]  # limit available actions after the first hit
 
     def getHighScore(self, hand: BlackjackCardSet):
         score = hand.getScore()[1] if (0 < hand.getScore()[1] <= 21) \
@@ -89,16 +106,6 @@ class BlackjackApp(object):
         # hide the 1st card
         self.dealer_hand.hideCard(hidden_idx)
 
-        """
-        TEST CODE =========================
-        # """
-        # self.player_hand = [BlackjackCardSet()]
-        # self.player_hand[0].addCard(Card('hearts', 'six'))
-        # self.player_hand[0].addCard(Card('spades', 'six'))
-        """
-        TEST CODE =========================
-        """
-
         self.interface.updateCardView(self.player_hand[0])
         self.interface.updateCardView(self.dealer_hand, is_dealer=True)
 
@@ -126,80 +133,30 @@ class BlackjackApp(object):
         # doubling allowed on initial 2 cards, cannot combine with splitting
         # player Hits or Stands
         valid_hands = []
-
-        """ def code_block1():
-            self.playHand(self.player_hand[i])
-            valid_hands_code()
-            break
-        
-        def valid_hands_code():
-            valid_hands.append(self.isSuccessful(self.player_hand[i]))
-            if valid_hands[-1] == False:
-                self.interface.showOutcomeMessage("Bust!\n")
-
-        def add_card_and_update_view_code():
-            self.player_hand[i].addCard(self.drawCard())
-            self.interface.updateCardView(self.player_hand[i]) """
-
         for i in range(MAX_HANDS):
             if len(self.player_hand[i].getCards()) < 2:
                 self.player_hand[i].addCard(self.drawCard())
                 self.interface.updateCardView(self.player_hand[i])
 
-            #####################################
-            # REFACTORED VERSION-----------START#
-            #####################################
-            X_act_opt = [Actions.HIT, Actions.STAND]
+            actions_opt = [Actions.HIT, Actions.STAND]
             if i == 0:
-                X_act_opt.append(Actions.DOUBLE)
+                actions_opt.append(Actions.DOUBLE)
             if i < MAX_HANDS - 1 and self.player_hand[i].canSplit() and self.balance >= self.bet:
-                X_act_opt.append(Actions.SPLIT)
-            
-            if len(X_act_opt) == 2:
-                self.playHand(self.player_hand[i])
-                valid_hands.append(self.isSuccessful(self.player_hand[i]))
-                if valid_hands[-1] == False:
-                    self.interface.showOutcomeMessage("Bust!\n")
-                break
+                actions_opt.append(Actions.SPLIT)
 
-            X_action = self.interface.getAction(X_act_opt)
-            if X_action == Actions.STAND:
-                valid_hands.append(self.isSuccessful(self.player_hand[i]))
-                break
-            if X_action == Actions.DOUBLE:
-                self.placeBet(i)
-                self.bets[i] = self.bet * 2
-                self.interface.updateBalanceDisplay(self.balance)
-                self.player_hand[i].addCard(self.drawCard())
-                self.interface.updateCardView(self.player_hand[i])
-                valid_hands.append(self.isSuccessful(self.player_hand[i]))
-                if valid_hands[-1] == False:
-                    self.interface.showOutcomeMessage("Bust!\n")
-                break
-            if X_action == Actions.SPLIT:
-                self.player_hand.append(self.player_hand[i].doSplit())
-                self.bets.append(self.bet)
-                self.placeBet(i)
-                self.interface.updateBalanceDisplay(self.balance)
-            self.player_hand[i].addCard(self.drawCard())
-            self.interface.updateCardView(self.player_hand[i])
-            self.playHand(self.player_hand[i])
+            self.playHand(i, actions=actions_opt)
             valid_hands.append(self.isSuccessful(self.player_hand[i]))
             if valid_hands[-1] == False:
                 self.interface.showOutcomeMessage("Bust!\n")
-            if X_action == Actions.HIT:
+            if len(self.player_hand) == i + 1:
                 break
-
-            #####################################
-            # REFACTORED VERSION-----------END###
-            #####################################
 
         not_bust_indices = [i for i in range(len(valid_hands)) if valid_hands[i]]
 
         # dealer Hits until result >= 17
         self.dealer_hand.revealCard(hidden_idx)
         self.interface.updateCardView(self.dealer_hand, is_dealer=True)
-        self.playHand(self.dealer_hand, is_dealer=True)
+        self.playHand(None, is_dealer=True)
         if len(not_bust_indices) == 0:
             self.interface.showOutcomeMessage(messages[Outcome.LOSS.value])
             return
