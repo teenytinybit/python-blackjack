@@ -10,6 +10,10 @@ from blackjack_interface import TextInterface, GraphicInterface
 from cards import Card, BlackjackCardSet
 from blackjack_misc import Outcome, Actions
 
+# from ..src.blackjack_interface import TextInterface, GraphicInterface
+# from ..src.cards import Card, BlackjackCardSet
+# from ..src.blackjack_misc import Outcome, Actions
+
 
 class TestTextInterface(unittest.TestCase):
 

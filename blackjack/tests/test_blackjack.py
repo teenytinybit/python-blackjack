@@ -13,6 +13,10 @@ from blackjack_interface import GraphicInterface, TextInterface
 from cards import Card as CardClass, BlackjackCardSet as CardSetClass, RANKS, SUITS
 
 
+# from ..src.blackjack_misc import Outcome, Actions
+# from ..src.blackjack_game import BlackjackApp as BlackjackAppClass
+# from ..src.blackjack_interface import GraphicInterface, TextInterface
+
 class TestBlackjackBaseClass(unittest.TestCase):
 
     @classmethod
@@ -1528,7 +1532,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         Test that can play one round then end game
         """
         with patch('builtins.input', side_effect=['start', 25, 'exit']):
-            with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+            with patch('blackjack_game.BlackjackApp.startRound') as play_round:
                 self.app.runGame()
                 play_round.assert_called_once()
 
@@ -1537,7 +1541,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         Test that can play multiple rounds
         """
         with patch('builtins.input', side_effect=['start', 25] * 3 + ['exit']):
-            with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+            with patch('blackjack_game.BlackjackApp.startRound') as play_round:
                 self.app.runGame()
                 play_round.assert_called()
                 self.assertEqual(play_round.call_count, 3)
@@ -1547,7 +1551,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         Test that can exit game without playing any round
         """
         with patch('builtins.input', return_value='exit'):
-            with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+            with patch('blackjack_game.BlackjackApp.startRound') as play_round:
                 self.app.runGame()
                 play_round.assert_not_called()
 
@@ -1556,7 +1560,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         Test that a custom bet can be used to play a round
         """
         test_bet = 50
-        play_round = self.get_patch('blackjack_game.BlackjackApp.playRound')
+        play_round = self.get_patch('blackjack_game.BlackjackApp.startRound')
         input_patch = self.get_patch('builtins.input', side_effect=['start', 'exit'])
         with patch('blackjack_interface.TextInterface.getBet', return_value=test_bet) as get_bet:
             with patch('blackjack_game.BlackjackApp.setBet') as set_bet:
@@ -1569,7 +1573,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         Test that different custom bets can be set for each round
         """
         test_bets = [10, 25, 50, 100]
-        play_round = self.get_patch('blackjack_game.BlackjackApp.playRound')
+        play_round = self.get_patch('blackjack_game.BlackjackApp.startRound')
         input_patch = self.get_patch('builtins.input', side_effect=['start'] * 4 + ['exit'])
         with patch('blackjack_interface.TextInterface.getBet', side_effect=test_bets) as get_bet:
             with patch('blackjack_game.BlackjackApp.setBet') as set_bet:
@@ -1585,7 +1589,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         """
         Test that cards reset (empty) each round
         """
-        play_round = self.get_patch('blackjack_game.BlackjackApp.playRound')
+        play_round = self.get_patch('blackjack_game.BlackjackApp.startRound')
         input_patch = self.get_patch('builtins.input', side_effect=['start', 10, 'start', 25, 'exit'])
         with patch('blackjack_game.BlackjackApp.resetCards') as reset_cards:
             self.app.runGame()
@@ -1598,7 +1602,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         """
         get_bet = self.get_patch('blackjack_interface.TextInterface.getBet', return_value=25)
         input_patch = self.get_patch('builtins.input', side_effect=['start', 'exit'])
-        with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+        with patch('blackjack_game.BlackjackApp.startRound') as play_round:
             self.app.runGame()
             play_round.assert_called_once()
 
@@ -1608,7 +1612,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
         """
         self.app.balance = 50
         input_patch = self.get_patch('builtins.input', side_effect=['start', 100, 25, 'exit'])
-        with patch('blackjack_game.BlackjackApp.playRound') as play_round:
+        with patch('blackjack_game.BlackjackApp.startRound') as play_round:
             self.app.runGame()
             play_round.assert_called_once()
             self.assertEqual(self.app.bet, 25)
@@ -1621,7 +1625,7 @@ class TestBlackjackAppRunGame(unittest.TestCase):
             self.app.balance = self.app.balance - 10
         input_patch = self.get_patch('builtins.input', side_effect=['start'] * 11 + ['exit'])
         get_bet = self.get_patch('blackjack_interface.TextInterface.getBet', return_value=10)
-        with patch('blackjack_game.BlackjackApp.playRound', side_effect=lose_bet) as play_round:
+        with patch('blackjack_game.BlackjackApp.startRound', side_effect=lose_bet) as play_round:
             self.app.runGame()
             play_round.assert_called()
             self.assertEqual(play_round.call_count, 10)
