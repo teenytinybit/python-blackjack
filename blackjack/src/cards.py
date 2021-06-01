@@ -90,6 +90,9 @@ class BlackjackCardSet(object):
             self.cards[idx].toggleVisibility()
         self._updateTotal()
 
+    def isSplitDisabled(self):
+        return self.no_split
+
     def isSplitFromAce(self):
         if self.no_split and len(self.cards) > 0:
             return self.cards[0].getRank() == RANKS[0][0]

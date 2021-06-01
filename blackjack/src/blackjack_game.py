@@ -71,6 +71,7 @@ class BlackjackApp(object):
                 self.player_hand.append(self.player_hand[hand_idx].doSplit())
                 self.bets.append(self.bet)
                 self.placeBet(hand_idx)
+                self.interface.moveSplitCard(action='hold')
                 self.interface.updateBalanceDisplay(self.balance)
                 action = Actions.HIT
             
@@ -135,22 +136,32 @@ class BlackjackApp(object):
         for i in range(MAX_HANDS):
             if len(self.player_hand[i].getCards()) < 2:
                 self.player_hand[i].addCard(self.drawCard())
+                self.interface.moveSplitCard(action='release')
                 self.interface.updateCardView(self.player_hand[i])
-
             actions_opt = [Actions.HIT, Actions.STAND]
-            if i == 0:
+            if i == 0 and self.balance >= self.bet:
                 actions_opt.append(Actions.DOUBLE)
             if i < MAX_HANDS - 1 and self.player_hand[i].canSplit() and self.balance >= self.bet:
                 actions_opt.append(Actions.SPLIT)
 
             self.playHand(i, actions=actions_opt)
-            valid_hands.append(self.isSuccessful(self.player_hand[i]))
-            if valid_hands[-1] == False:
-                self.interface.showOutcomeMessage("Bust!\n")
+            if not self.interface.isAlive():
+                return
+            success = self.isSuccessful(self.player_hand[i])
+            valid_hands.append(success)
+            if not success:
+                if len(self.player_hand) > i + 1 or valid_hands.count(True) == 0:
+                    self.interface.showOutcomeMessage("Bust!\n", no_button=True)
+                else:
+                    self.interface.showOutcomeMessage("Bust!\n", button_text='continue')
+            elif len(self.player_hand) > i + 1:
+                self.interface.setAsideCardSet(i)
+            
             if len(self.player_hand) == i + 1:
                 break
 
         not_bust_indices = [i for i in range(len(valid_hands)) if valid_hands[i]]
+        not_bust_indices.reverse()
 
         # dealer Hits until result >= 17
         self.dealer_hand.revealCard(hidden_idx)
@@ -159,25 +170,22 @@ class BlackjackApp(object):
         if len(not_bust_indices) == 0:
             self.interface.showOutcomeMessage(messages[Outcome.LOSS.value])
             return
-        if not self.isSuccessful(self.dealer_hand):
-            self.interface.showOutcomeMessage("Dealer bust! " + messages[Outcome.WIN.value])
-            for i in not_bust_indices:
-                self.adjustBalance(Outcome.WIN, i)
-                self.interface.updateBalanceDisplay(self.balance)
-            return
 
         # compare results to player
         dealer_high = self.getHighScore(self.dealer_hand)
+        extra_msg = "" if dealer_high < 22 else "Dealer bust! "
         for v in not_bust_indices:
             player_high = self.getHighScore(self.player_hand[v])
             outcome = None
             if player_high == dealer_high:
                 outcome = Outcome.TIE
-            elif player_high > dealer_high:
+            elif dealer_high > 21 or player_high > dealer_high:
                 outcome = Outcome.WIN
             else:
                 outcome = Outcome.LOSS
-            self.interface.showOutcomeMessage(messages[outcome.value])
+            self.interface.showSettledCardView(self.player_hand[v], v)
+            msg_btn_text = 'back' if v == not_bust_indices[-1] else 'next result'
+            self.interface.showOutcomeMessage(extra_msg + messages[outcome.value], button_text=msg_btn_text)
             self.adjustBalance(outcome, v)
             if not outcome == Outcome.LOSS:
                 self.interface.updateBalanceDisplay(self.balance)
@@ -191,23 +199,27 @@ class BlackjackApp(object):
         self.interface.greet()
         self.interface.updateBalanceDisplay(self.balance)
         # start round or exit game
-        while self.balance >= 10 and self.interface.wantsToPlay():
+        while self.interface.isAlive() and self.balance >= 10 and self.interface.wantsToPlay():
             self.setBet(self.interface.getBet(self.balance))
+            if not self.interface.isAlive():
+                break
             self.interface.initializeView()
             self.startRound()
             self.resetCards()
             self.interface.clear()
             self.interface.updateBalanceDisplay(self.balance)
 
-        self.interface.close()
-    
+        if self.balance < 10:
+            self.interface.close()
+        
     def setBet(self, bet):
         self.bet = bet
         self.bets = [bet]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-interface', default='TextInterface', choices=['TextInterface', 'GraphicInterface'])
+    # parser.add_argument('-interface', default='TextInterface', choices=['TextInterface', 'GraphicInterface'])
+    parser.add_argument('-interface', default='GraphicInterface', choices=['TextInterface', 'GraphicInterface'])
     args = parser.parse_args()
     interface_class = getattr(blackjack_interface, args.interface)
     interface = interface_class()
