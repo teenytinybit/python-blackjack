@@ -210,7 +210,6 @@ class GraphicInterface(object):
    
     def _loadAssets(self):
         assets = {
-            # 'bg' : 'game_bg_grid.png',
             'bg' : 'game_bg.png',
             'round_bg': 'round_bg.png',
             'bal' : 'balance.png',
@@ -235,7 +234,7 @@ class GraphicInterface(object):
             'ok': 'ok_btn.png'
         }
 
-        fldr = os.path.join(os.getcwd(), 'blackjack', 'assets')
+        fldr = os.path.join(os.getcwd(), 'assets')
         for k, v in assets.items():
             assets[k] = os.path.join(fldr, v)
 
@@ -259,7 +258,7 @@ class GraphicInterface(object):
         root.maxsize(self.WIDTH, self.HEIGHT) # width x height
         root.minsize(self.WIDTH, self.HEIGHT)
         root.title("Blackjack Game")
-        root.iconbitmap(os.path.join(os.getcwd(), 'blackjack', 'assets', 'playing-card.ico'))
+        root.iconbitmap(os.path.join(os.getcwd(), 'assets', 'playing-card.ico'))
 
         def close_window():
             self.alive = False

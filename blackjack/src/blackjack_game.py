@@ -218,7 +218,6 @@ class BlackjackApp(object):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    # parser.add_argument('-interface', default='TextInterface', choices=['TextInterface', 'GraphicInterface'])
     parser.add_argument('-interface', default='GraphicInterface', choices=['TextInterface', 'GraphicInterface'])
     args = parser.parse_args()
     interface_class = getattr(blackjack_interface, args.interface)
