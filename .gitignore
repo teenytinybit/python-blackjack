@@ -1616,3 +1616,7 @@ blackjack/fonts/FTLTLT.TTF
 blackjack/fonts/MATURASC.TTF
 blackjack/game.ico
 .gitignore
+first_pass_success_lines.txt
+puzzles.txt
+ss.py
+sudoku_solver.py
